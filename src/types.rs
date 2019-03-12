@@ -69,3 +69,14 @@ impl SubAssign<u8> for Strip {
         self.curr = self.curr.wrapping_sub(other);
     }
 }
+
+//endregion Strip
+
+//region Context
+
+pub struct Context {
+    pub strip: Strip,
+    pub loops: Stack<OpList>,
+}
+
+//endregion Context
