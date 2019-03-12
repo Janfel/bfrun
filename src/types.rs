@@ -1,72 +1,7 @@
-use std::{
-    io::{Read, Write},
-    ops::{AddAssign, SubAssign},
-};
+use std::ops::{AddAssign, SubAssign};
 
-/// Intended only for stack operations.
-type Stack<T> = Vec<T>;
-
-//region Op
-
-/// One of the eight brainfuck operators.
-#[derive(Copy, Clone)]
-pub enum Op {
-    Left,
-    Right,
-    Inc,
-    Dec,
-    Put,
-    Get,
-    LoopL,
-    LoopR,
-}
-impl Op {
-    pub fn from_char(c: char) -> Option<Self> {
-        use Op::{Dec, Get, Inc, Left, LoopL, LoopR, Put, Right};
-        match c {
-            '<' => Some(Left),
-            '>' => Some(Right),
-            '+' => Some(Inc),
-            '-' => Some(Dec),
-            '.' => Some(Put),
-            ',' => Some(Get),
-            '[' => Some(LoopL),
-            ']' => Some(LoopR),
-            _ => None,
-        }
-    }
-
-    pub fn to_char(&self) -> char {
-        use Op::{Dec, Get, Inc, Left, LoopL, LoopR, Put, Right};
-        match self {
-            Left => '<',
-            Right => '>',
-            Inc => '+',
-            Dec => '-',
-            Put => '.',
-            Get => ',',
-            LoopL => '[',
-            LoopR => ']',
-        }
-    }
-
-    pub fn exec(&self, ctx: &mut Context) {
-        unimplemented!(); // TODO Implement
-    }
-}
-
-/// An executable list of Ops.
-type OpList = Vec<Op>;
-
-pub fn exec_all(ops: &OpList, ctx: &mut Context) {
-    for op in ops {
-        op.exec(ctx)
-    }
-}
-
-//endregion Op
-
-//region Strip
+/// A vector intended only for use with stack operations.
+pub type Stack<T> = Vec<T>;
 
 /// The Turing strip used by brainfuck.
 ///
@@ -78,6 +13,7 @@ pub struct Strip {
     left: Stack<u8>,
     right: Stack<u8>,
 }
+
 impl Strip {
     /// Creates a new Strip.
     pub fn new() -> Self {
@@ -133,42 +69,4 @@ impl SubAssign<u8> for Strip {
     fn sub_assign(&mut self, other: u8) {
         self.curr = self.curr.wrapping_sub(other);
     }
-}
-
-//endregion Strip
-
-//region Context
-
-pub struct Context<'a> {
-    pub strip: Strip,
-    pub loops: Stack<OpList>,
-    pub mode: Mode,
-    pub bfin: Box<Read + 'a>,
-    pub bfout: Box<Write + 'a>,
-}
-impl<'a> Context<'a> {
-    pub fn new<R, W>(bfin: R, bfout: W, mode: Mode) -> Self
-    where
-        R: Read + 'a,
-        W: Write + 'a,
-    {
-        let strip = Strip::new();
-        let loops = Stack::new();
-        let bfin = Box::from(bfin);
-        let bfout = Box::from(bfout);
-        Self {
-            strip,
-            loops,
-            mode,
-            bfin,
-            bfout,
-        }
-    }
-}
-
-//endregion Context
-
-pub enum Mode {
-    File,
-    Stream,
 }

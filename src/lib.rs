@@ -17,11 +17,12 @@
  * along with this program.  If not, see <http: //www.gnu.org/licenses/>.
  */
 
-use std::io::{Read, Write};
-
+mod context;
+mod ops;
 mod types;
 
-use types::{Context, Mode, Strip};
+use context::{Context, Mode};
+use std::io::{Read, Write};
 
 /// Interprets a brainfuck file.
 ///
