@@ -1,4 +1,7 @@
-use std::ops::{AddAssign, SubAssign};
+use std::{
+    io::{Read, Write},
+    ops::{AddAssign, SubAssign},
+};
 
 /// Intended only for stack operations.
 type Stack<T> = Vec<T>;
@@ -136,9 +139,36 @@ impl SubAssign<u8> for Strip {
 
 //region Context
 
-pub struct Context {
+pub struct Context<'a> {
     pub strip: Strip,
     pub loops: Stack<OpList>,
+    pub mode: Mode,
+    pub bfin: Box<Read + 'a>,
+    pub bfout: Box<Write + 'a>,
+}
+impl<'a> Context<'a> {
+    pub fn new<R, W>(bfin: R, bfout: W, mode: Mode) -> Self
+    where
+        R: Read + 'a,
+        W: Write + 'a,
+    {
+        let strip = Strip::new();
+        let loops = Stack::new();
+        let bfin = Box::from(bfin);
+        let bfout = Box::from(bfout);
+        Self {
+            strip,
+            loops,
+            mode,
+            bfin,
+            bfout,
+        }
+    }
 }
 
 //endregion Context
+
+pub enum Mode {
+    File,
+    Stream,
+}
