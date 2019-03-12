@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2019 Jan Felix Langenbach
  *
- * This file is part of src.
+ * This file is part of bfrun.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
