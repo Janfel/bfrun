@@ -3,6 +3,33 @@ use std::ops::{AddAssign, SubAssign};
 /// Intended only for stack operations.
 type Stack<T> = Vec<T>;
 
+/// One of the eight brainfuck operators.
+type Op = char;
+
+const VALID_OPS: Vec<Op> = vec!['<', '>', '+', '-', '.', ',', '[', ']'];
+
+pub fn char_to_op(b: char) -> Option<Op> {
+    if VALID_OPS.contains(&b) {
+        Some(b)
+    } else {
+        None
+    }
+}
+
+pub fn exec(op: &Op, ctx: &mut Context) {
+    unimplemented!(); // TODO Implement
+}
+
+/// An executable list of Ops.
+type OpList = Vec<Op>;
+
+pub fn exec_all(ops: &OpList, ctx: &mut Context) {
+    for op in ops {
+        exec(&op, &mut ctx)
+    }
+}
+
+//region Strip
 
 /// The Turing strip used by brainfuck.
 ///
