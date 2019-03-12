@@ -1,17 +1,18 @@
 use std::ops::{AddAssign, SubAssign};
 
-/// A stack of bytes.
-type Stack = Vec<u8>;
+/// Intended only for stack operations.
+type Stack<T> = Vec<T>;
+
 
 /// The Turing strip used by brainfuck.
 ///
-/// The strip includes a pointer to a specific cell that
-/// can be moved forwards and backwards.
+/// The strip includes an address pointer to a specific
+/// cell that can be moved forwards and backwards.
 #[derive(Default)]
 pub struct Strip {
     curr: u8,
-    left: Stack,
-    right: Stack,
+    left: Stack<u8>,
+    right: Stack<u8>,
 }
 impl Strip {
     /// Creates a new Strip.
