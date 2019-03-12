@@ -21,6 +21,8 @@ use std::io::{Read, Write};
 
 mod types;
 
+use types::{Context, Mode, Strip};
+
 /// Interprets a brainfuck file.
 ///
 /// This function takes an input stream and treats it
@@ -32,12 +34,9 @@ mod types;
 /// * `input` - A reader containing the brainfuck file.
 /// * `bfin` - A reader corresponding to the brainfuck program's stdin.
 /// * `bfout` - A reader corresponding to the brainfuck programs stdout.
-pub fn run_file<R, W>(input: R, bfin: R, bfout: W)
-where
-    R: Read,
-    W: Write,
-{
-    unimplemented!();
+pub fn run_file<R: Read, W: Write>(input: R, bfin: R, bfout: W) {
+    let ctx = Context::new(bfin, bfout, Mode::File);
+    run(input, ctx)
 }
 /// Interprets a brainfuck stream.
 ///
@@ -50,10 +49,11 @@ where
 /// * `input` - A reader corresponding to the brainfuck stream.
 /// * `bfin` - A reader corresponding to the brainfuck program's stdin.
 /// * `bfout` - A reader corresponding to the brainfuck programs stdout.
-pub fn run_stream<R, W>(input: R, bfin: R, bfout: W)
-where
-    R: Read,
-    W: Write,
-{
+pub fn run_stream<R: Read, W: Write>(input: R, bfin: R, bfout: W) {
+    let ctx = Context::new(bfin, bfout, Mode::Stream);
+    run(input, ctx)
+}
+
+fn run<R: Read>(input: R, ctx: Context) {
     unimplemented!();
 }
