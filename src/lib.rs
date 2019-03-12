@@ -19,6 +19,8 @@
 
 use std::io::{Read, Write};
 
+mod types;
+
 /// Interprets a brainfuck file.
 ///
 /// This function takes an input stream and treats it
