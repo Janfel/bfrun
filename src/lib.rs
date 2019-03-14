@@ -17,6 +17,7 @@
  * along with this program.  If not, see <http: //www.gnu.org/licenses/>.
  */
 
+mod analyze;
 pub mod error;
 use error::*;
 use std::{
@@ -87,6 +88,8 @@ pub fn read_file(fname: &str) -> io::Result<Vec<char>> {
 }
 
 pub fn run(prog: &[char]) -> Result {
+    analyze::all(prog)?;
+
     let mut strip = Strip::new();
     let mut jumps = Vec::new();
     let mut addr_ptr = 0;
@@ -139,7 +142,7 @@ pub fn run(prog: &[char]) -> Result {
                 if get(&mut strip, addr_ptr) == 0 {
                     jumps.pop();
                 } else {
-                    i = *jumps.last().ok_or(Error::MismatchedBracket)?;
+                    i = *jumps.last().ok_or(Error::MissingLeftBracket)?;
                 };
             }
             _ => (),

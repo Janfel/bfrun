@@ -23,7 +23,8 @@ use std::{error::Error as StdError, fmt, result::Result as StdResult};
 
 #[derive(Copy, Debug, Clone, PartialEq, Eq)]
 pub enum Error {
-    MismatchedBracket,
+    MissingRightBracket,
+    MissingLeftBracket,
     NoInputFile,
 }
 
@@ -31,8 +32,9 @@ impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         use Error::*;
         match self {
-            MismatchedBracket => write!(f, "mismatched bracket"),
-            NoInputFile => write!(f, "no input file"),
+            MissingRightBracket => write!(f, "Error: MissingRightBracket"),
+            MissingLeftBracket => write!(f, "Error: MissingLeftBracket"),
+            NoInputFile => write!(f, "Error: NoInputFile"),
         }
     }
 }
