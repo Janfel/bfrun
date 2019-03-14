@@ -56,7 +56,6 @@ impl CharBuf {
             }
             '<' => *addr_ptr -= self.ctr as isize, //: Beware cast errors.
             '>' => *addr_ptr += self.ctr as isize, //: Beware cast errors.
-            '.' => put_byte(get(&mut strip, *addr_ptr), self.ctr),
             _ => {}
         };
         self.clear();
@@ -127,7 +126,7 @@ pub fn run(prog: &[char]) -> Result {
             '-' => char_buf.insert(c),
             '<' => char_buf.insert(c),
             '>' => char_buf.insert(c),
-            '.' => char_buf.insert(c),
+            '.' => put_byte(get(&mut strip, addr_ptr)),
             ',' => {
                 strip.insert(addr_ptr, get_byte());
             }
@@ -172,8 +171,8 @@ fn get_byte() -> u8 {
     buf[0]
 }
 
-fn put_byte(b: u8, n: usize) {
-    io::stdout().write_all(&vec![b; n]).unwrap();
+fn put_byte(b: u8) {
+    io::stdout().write_all(&[b; 1]).unwrap();
 }
 
 /// The strip of memory brainfuck uses.
