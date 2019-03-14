@@ -21,40 +21,47 @@ mod context;
 mod ops;
 mod types;
 
-use context::{Context, Mode};
+pub use context::Mode;
+
+use ::unicode_reader::CodePoints;
+use context::Context;
+use ops::Op;
 use std::io::{Read, Write};
 
-/// Interprets a brainfuck file.
-///
-/// This function takes an input stream and treats it
-/// as a brainfuck file. Does more optimizations than
-/// `run_stream`, but blocks when encountering a loop.
-///
-/// # Arguments
-///
-/// * `input` - A reader containing the brainfuck file.
-/// * `bfin` - A reader corresponding to the brainfuck program's stdin.
-/// * `bfout` - A reader corresponding to the brainfuck programs stdout.
-pub fn run_file<R: Read, W: Write>(input: R, bfin: R, bfout: W) {
-    let ctx = Context::new(bfin, bfout, Mode::File);
-    run(input, ctx)
-}
-/// Interprets a brainfuck stream.
+/// Interprets a brainfuck program.
 ///
 /// This function takes an input stream of brainfuck instructions and executes
-/// them. Does less optimizations than `run_file`, but does not block when
-/// encountering a loop.
+/// them. The optimizations used are determined by the passed mode.
 ///
 /// # Arguments
 ///
 /// * `input` - A reader corresponding to the brainfuck stream.
 /// * `bfin` - A reader corresponding to the brainfuck program's stdin.
 /// * `bfout` - A reader corresponding to the brainfuck programs stdout.
-pub fn run_stream<R: Read, W: Write>(input: R, bfin: R, bfout: W) {
-    let ctx = Context::new(bfin, bfout, Mode::Stream);
-    run(input, ctx)
+/// * `mode` - An enum variant that determines the optimization mode.
+pub fn run<R: Read, S: Read, W: Write>(input: R, bfin: S, bfout: &mut W, mode: Mode) {
+    let mut ctx = Context::new(bfin, bfout, mode);
+    let charstream = CodePoints::from(input).map(Result::unwrap);
+    let opstream = charstream.filter_map(Op::from);
+    ops::exec_all(opstream, &mut ctx)
 }
 
-fn run<R: Read>(input: R, ctx: Context) {
-    unimplemented!();
+#[cfg(test)]
+mod test_bfrun {
+    use super::*;
+    use std::io::Cursor;
+
+    #[test]
+    fn test_hello_world() {
+        const HELLO_WORLD: &str = "+[-[<<[+[--->]-[<<<]]]>>>-]>-.---.>..>.<<<<-.<+.>>>>>.>.<<.<-.";
+        let hello_buf = HELLO_WORLD.to_owned();
+        let bfin = Cursor::new(Vec::new());
+        let mut bfout = Vec::new();
+        let mode = Mode::Stream;
+
+        run(hello_buf.as_bytes(), bfin, &mut bfout, mode);
+        let txtout = String::from_utf8(bfout).expect("unable to decode output as UTF-8");
+
+        println!("Output: {}", txtout);
+    }
 }

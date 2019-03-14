@@ -29,8 +29,10 @@ pub struct Context<'a> {
     pub mode: Mode,
     pub bfin: Box<Read + 'a>,
     pub bfout: Box<Write + 'a>,
+    pub skip_ctr: u32,
 }
 
+#[derive(Copy, Clone, Eq, PartialEq)]
 pub enum Mode {
     File,
     Stream,
@@ -42,16 +44,13 @@ impl<'a> Context<'a> {
         R: Read + 'a,
         W: Write + 'a,
     {
-        let strip = Strip::new();
-        let loops = Stack::new();
-        let bfin = Box::from(bfin);
-        let bfout = Box::from(bfout);
         Self {
-            strip,
-            loops,
+            strip: Strip::new(),
+            loops: Stack::new(),
             mode,
-            bfin,
-            bfout,
+            bfin: Box::from(bfin),
+            bfout: Box::from(bfout),
+            skip_ctr: 0,
         }
     }
 }

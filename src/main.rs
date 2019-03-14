@@ -17,8 +17,6 @@
  * along with this program.  If not, see <http: //www.gnu.org/licenses/>.
  */
 
-extern crate bfrun;
-
 fn main() {
     println!("Hello, world!");
 }

@@ -29,6 +29,7 @@ pub type Stack<T> = Vec<T>;
 #[derive(Default)]
 pub struct Strip {
     curr: u8,
+    mov_buf: i64,
     left: Stack<u8>,
     right: Stack<u8>,
 }
@@ -39,18 +40,30 @@ impl Strip {
         Self::default()
     }
     /// The value of the cell the pointer currently points at.
-    pub fn get(&self) -> u8 {
+    pub fn get(&mut self) -> u8 {
+        self.apply_mov_buf();
         self.curr
     }
-    /// Moves the pointer.
-    ///
-    /// This function moves the pointer any amount of steps
-    /// in the positive or negative direction. It is
-    /// recommended to buffer the input beforehand.
-    pub fn mov(&mut self, mut steps: isize) {
+
+    pub fn set(&mut self, byte: u8) {
+        self.apply_mov_buf();
+        self.curr = byte;
+    }
+
+    pub fn move_right(&mut self, steps: u32) {
+        self.mov_buf += i64::from(steps);
+    }
+
+    pub fn move_left(&mut self, steps: u32) {
+        self.mov_buf -= i64::from(steps);
+    }
+
+    fn apply_mov_buf(&mut self) {
+        let steps = self.mov_buf;
         if steps == 0 {
             return;
         }
+        self.mov_buf = 0;
 
         let (from, to) = if steps < 0 {
             (&mut self.left, &mut self.right)
@@ -58,10 +71,10 @@ impl Strip {
             (&mut self.right, &mut self.left)
         };
 
-        let usteps = if steps == isize::min_value() {
-            (steps + 1).abs() as usize
+        let usteps = if steps == i64::min_value() {
+            (steps + 1).abs() as u32
         } else {
-            steps.abs() as usize - 1
+            steps.abs() as u32 - 1
         };
 
         to.push(self.curr);
@@ -77,7 +90,7 @@ impl AddAssign<u8> for Strip {
     /// This function wraps around on byte overflow as
     /// specified by the unofficial brainfuck specification.
     fn add_assign(&mut self, other: u8) {
-        self.curr = self.curr.wrapping_add(other);
+        self.curr = self.get().wrapping_add(other);
     }
 }
 impl SubAssign<u8> for Strip {
@@ -86,6 +99,6 @@ impl SubAssign<u8> for Strip {
     /// This function wraps around on byte underflow as
     /// specified by the unofficial brainfuck specification.
     fn sub_assign(&mut self, other: u8) {
-        self.curr = self.curr.wrapping_sub(other);
+        self.curr = self.get().wrapping_sub(other);
     }
 }
