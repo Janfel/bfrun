@@ -1,3 +1,5 @@
+//! Errors that can occurr during brainfuck execution.
+
 /*
  * Copyright (C) 2019 Jan Felix Langenbach
  *
@@ -17,14 +19,24 @@
  * along with this program.  If not, see <http: //www.gnu.org/licenses/>.
  */
 
-extern crate bfrun;
+use std::{error::Error as StdError, fmt, result::Result as StdResult};
 
-use bfrun::{error::Error, read_file, run};
-use std::{env, error::Error as StdError};
-
-fn main() -> Result<(), Box<StdError>> {
-    let fname = env::args().nth(1).ok_or(Error::NoInputFile)?;
-    let prog = read_file(&fname)?;
-    run(&prog)?;
-    Ok(())
+#[derive(Copy, Debug, Clone, PartialEq, Eq)]
+pub enum Error {
+    MismatchedBracket,
+    NoInputFile,
 }
+
+impl fmt::Display for Error {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        use Error::*;
+        match self {
+            MismatchedBracket => write!(f, "mismatched bracket"),
+            NoInputFile => write!(f, "no input file"),
+        }
+    }
+}
+
+impl StdError for Error {}
+
+pub type Result = StdResult<(), Error>;
