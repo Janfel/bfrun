@@ -26,7 +26,7 @@ use std::{
 };
 
 // TODO Test replacement by `x as u8`.
-pub fn trunc(mut v: usize) -> u8 {
+pub fn trunc(mut v: u32) -> u8 {
     let umax = u8::MAX as usize;
     while v > umax {
         v -= umax
@@ -38,7 +38,7 @@ pub fn trunc(mut v: usize) -> u8 {
 ///
 /// Returns the value of the specified cell and
 /// initializes it with 0 if necessary.
-pub fn get(strip: &mut Strip, index: isize) -> u8 {
+pub fn get(strip: &mut Strip, index: i64) -> u8 {
     *strip.entry(index).or_insert(0)
 }
 

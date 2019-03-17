@@ -27,7 +27,12 @@ mod analyze;
 pub mod error;
 pub use error::{Error, Result};
 mod ops;
-use std::{collections::HashMap, fs, io, u8};
+use std::{
+    collections::HashMap,
+    fs,
+    io::{self, Read, Stdin, Stdout, Write},
+    u8,
+};
 
 /// All valid brainfuck operators.
 const VALID_CHARS: [char; 8] = ['+', '-', '<', '>', '.', ',', '[', ']'];
@@ -40,10 +45,14 @@ struct CharBuf {
     /// The char that is currently being buffered, if any.
     pub ch_opt: Option<char>,
     /// Counts the number of instances in the buffer.
-    pub ctr: usize, // TODO Change everything to u32/i32.
+    pub ctr: u32, // TODO Change everything to u32/i32.
 }
 
 impl CharBuf {
+    pub fn new() -> Self {
+        Self::default()
+    }
+
     /// Inserts a char into the buffer and increments `ctr`.
     ///
     /// # Panics
@@ -66,7 +75,7 @@ impl CharBuf {
     }
 
     // TODO Change to callback fn.
-    pub fn flush(&mut self, mut strip: &mut Strip, addr_ptr: &mut isize) {
+    pub fn flush(&mut self, mut strip: &mut Strip, addr_ptr: &mut i64) {
         if self.ch_opt.is_none() {
             self.clear(); // Setting self.ctr = 0 would do the trick, but also introduce duplication.
             return;
@@ -90,6 +99,117 @@ impl CharBuf {
     }
 }
 
+pub struct Interpreter<'a> {
+    bfin: &'a mut Read,
+    bfout: &'a mut Write,
+    strip: Strip,
+    jumps: Vec<u32>,
+    addr_ptr: i64,
+    skip_ctr: u32,
+    char_buf: CharBuf,
+    dirty: bool,
+}
+
+impl<'a> Interpreter<'a> {
+    pub fn new(bfin: &'a mut impl Read, bfout: &'a mut impl Write) -> Self {
+        Self {
+            bfin,
+            bfout,
+            strip: Strip::new(),
+            jumps: Vec::new(),
+            addr_ptr: 0,
+            skip_ctr: 0,
+            char_buf: CharBuf::new(),
+            dirty: false,
+        }
+    }
+
+    pub fn clear(&mut self) {
+        self.strip = Strip::new();
+        self.jumps = Vec::new();
+        self.addr_ptr = 0;
+        self.skip_ctr = 0;
+        self.char_buf = CharBuf::default();
+    }
+
+    /// Runs a brainfuck program.
+    ///
+    /// This function takes a slice of brainfuck instructions,
+    /// preprocesses them and executes them in-memory.
+    /// # Errors
+    /// Returns any of the runtime errors in `bfrun::error::Error`.
+    /// # Panics
+    /// If an IO error occurs during the execution of the brainfuck program.
+    pub fn run(&mut self, prog: &[char]) -> Result {
+        analyze::all(prog)?;
+
+        if self.dirty {
+            self.clear();
+            self.dirty = true;
+        }
+
+        let mut i = 0; // Loop counter.
+
+        // TODO Change back to while {}.
+        loop {
+            // Check loop counter.
+            if i >= prog.len() {
+                self.char_buf.flush(&mut self.strip, &mut self.addr_ptr); // TODO Move after while {}.
+                break;
+            }
+
+            let c = prog[i];
+
+            if self.skip_ctr != 0 {
+                match c {
+                    '[' => self.skip_ctr += 1,
+                    ']' => self.skip_ctr -= 1,
+                    _ => {}
+                }
+                i += 1; // Increment loop counter.
+                continue;
+            }
+
+            if let Some(buf_c) = self.char_buf.ch_opt {
+                if buf_c != c {
+                    self.char_buf.flush(&mut self.strip, &mut self.addr_ptr)
+                }
+            }
+
+            // TODO Extract exec() fn.
+            match c {
+                '+' => self.char_buf.insert(c),
+                '-' => self.char_buf.insert(c),
+                '<' => self.char_buf.insert(c),
+                '>' => self.char_buf.insert(c),
+                '.' => ops::put_byte(ops::get(&mut self.strip, self.addr_ptr)),
+                ',' => {
+                    self.strip.insert(self.addr_ptr, ops::get_byte());
+                }
+                '[' => {
+                    if ops::get(&mut self.strip, self.addr_ptr) == 0 {
+                        self.skip_ctr = 1
+                    } else {
+                        self.jumps.push(i)
+                    };
+                }
+                ']' => {
+                    if ops::get(&mut self.strip, self.addr_ptr) == 0 {
+                        self.jumps.pop();
+                    } else {
+                        i = *self.jumps.last().ok_or(Error::MissingLeftBracket)?;
+                    };
+                }
+                _ => (),
+            };
+
+            i += 1; // Increment loop counter.
+        }
+
+        Ok(())
+    }
+}
+
 // TODO Integrate into preprocessor.
 pub fn read_file(fname: &str) -> io::Result<Vec<char>> {
     let prog = fs::read_to_string(fname)?
@@ -99,86 +219,8 @@ pub fn read_file(fname: &str) -> io::Result<Vec<char>> {
     Ok(prog)
 }
 
-/// Runs a brainfuck program.
-///
-/// This function takes a slice of brainfuck instructions,
-/// preprocesses them and executes them in-memory.
-/// # Errors
-/// Returns any of the runtime errors in `bfrun::error::Error`.
-/// # Panics
-/// If an IO error occurs during the execution of the brainfuck program.
-pub fn run(prog: &[char]) -> Result {
-    analyze::all(prog)?;
-
-    let mut strip = Strip::new();
-    let mut jumps = Vec::new();
-    let mut addr_ptr = 0;
-    let mut skip_ctr = 0;
-    let mut char_buf = CharBuf::default();
-
-    let mut i = 0; // Loop counter.
-
-    // TODO Change back to while {}.
-    loop {
-        // Check loop counter.
-        if i >= prog.len() {
-            char_buf.flush(&mut strip, &mut addr_ptr); // TODO Move after while {}.
-            break;
-        }
-
-        let c = prog[i];
-
-        if skip_ctr != 0 {
-            match c {
-                '[' => skip_ctr += 1,
-                ']' => skip_ctr -= 1,
-                _ => {}
-            }
-            i += 1; // Increment loop counter.
-            continue;
-        }
-
-        if let Some(buf_c) = char_buf.ch_opt {
-            if buf_c != c {
-                char_buf.flush(&mut strip, &mut addr_ptr)
-            }
-        }
-
-        // TODO Extract exec() fn.
-        match c {
-            '+' => char_buf.insert(c),
-            '-' => char_buf.insert(c),
-            '<' => char_buf.insert(c),
-            '>' => char_buf.insert(c),
-            '.' => ops::put_byte(ops::get(&mut strip, addr_ptr)),
-            ',' => {
-                strip.insert(addr_ptr, ops::get_byte());
-            }
-            '[' => {
-                if ops::get(&mut strip, addr_ptr) == 0 {
-                    skip_ctr = 1
-                } else {
-                    jumps.push(i)
-                };
-            }
-            ']' => {
-                if ops::get(&mut strip, addr_ptr) == 0 {
-                    jumps.pop();
-                } else {
-                    i = *jumps.last().ok_or(Error::MissingLeftBracket)?;
-                };
-            }
-            _ => (),
-        };
-
-        i += 1; // Increment loop counter.
-    }
-
-    Ok(())
-}
-
 /// The strip of memory brainfuck uses.
-type Strip = HashMap<isize, u8>;
+type Strip = HashMap<i64, u8>;
 
 #[cfg(test)]
 mod test_runbf {
