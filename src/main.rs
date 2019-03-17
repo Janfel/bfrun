@@ -20,14 +20,12 @@
 extern crate bfrun;
 
 use bfrun::{error::Error, read_file, Interpreter};
-use std::{env, error::Error as StdError, io};
+use std::{env, error::Error as StdError};
 
 fn main() -> Result<(), Box<StdError>> {
     let fname = env::args().nth(1).ok_or(Error::NoInputFile)?;
     let prog = read_file(&fname)?;
 
-    let mut bfin = io::stdin();
-    let mut bfout = io::stdout();
-    Interpreter::new(&mut bfin, &mut bfout).run(&prog)?;
+    Interpreter::new().run(&prog)?;
     Ok(())
 }

@@ -77,8 +77,8 @@ impl CharBuf {
 }
 
 pub struct Interpreter<'a> {
-    bfin: &'a mut Read,
-    bfout: &'a mut Write,
+    bfin: Option<&'a mut Read>,
+    bfout: Option<&'a mut Write>,
     strip: Strip,
     jumps: Vec<usize>,
     addr_ptr: i64,
@@ -88,10 +88,10 @@ pub struct Interpreter<'a> {
 }
 
 impl<'a> Interpreter<'a> {
-    pub fn new(bfin: &'a mut impl Read, bfout: &'a mut impl Write) -> Self {
+    pub fn new() -> Self {
         Self {
-            bfin,
-            bfout,
+            bfin: None,
+            bfout: None,
             strip: Strip::new(),
             jumps: Vec::new(),
             addr_ptr: 0,
@@ -100,7 +100,7 @@ impl<'a> Interpreter<'a> {
             char_buf: CharBuf::new(),
         }
     }
-
+    // TODO Add bfin bfout builders
     pub fn clear(&mut self) {
         self.strip = Strip::new();
         self.jumps = Vec::new();
@@ -240,9 +240,16 @@ impl<'a> Interpreter<'a> {
     fn read_byte(&mut self) {
         // TODO change to `impl Read`.
         let mut buf = vec![0; 1];
-        self.bfin
-            .read_exact(&mut buf)
-            .expect("error while reading from bfin"); // TODO Better error handling. Maybe bferr?
+
+        if let Some(s) = &mut self.bfin {
+            s.read_exact(&mut buf)
+                .expect("error while reading from bfin"); // TODO Better error handling. Maybe bferr?
+        } else {
+            io::stdin()
+                .read_exact(&mut buf)
+                .expect("error while reading from bfin"); // TODO Better error handling. Maybe bferr?
+        };
+
         self.write(buf[0]);
     }
 
@@ -255,9 +262,14 @@ impl<'a> Interpreter<'a> {
     /// means of handling such an error.
     fn write_byte(&mut self) {
         let b = self.read();
-        self.bfout
-            .write_all(&[b; 1])
-            .expect("error while writing to bfout"); // TODO Better error handling. Maybe bferr?
+
+        if let Some(s) = &mut self.bfout {
+            s.write_all(&[b; 1]).expect("error while writing to bfout"); // TODO Better error handling. Maybe bferr?
+        } else {
+            io::stdout()
+                .write_all(&[b; 1])
+                .expect("error while writing to bfout"); // TODO Better error handling. Maybe bferr?
+        }
     }
 
     fn flush_buf(&mut self) {
@@ -297,13 +309,10 @@ type Strip = HashMap<i64, u8>;
 #[cfg(test)]
 mod test_runbf {
     use super::{read_file, Interpreter};
-    use std::io;
 
     #[test]
     fn test_runtime_error() {
         let prog = read_file("examples/hello_world.b").unwrap();
-        let mut bfin = io::stdin();
-        let mut bfout = io::stdout();
-        Interpreter::new(&mut bfin, &mut bfout).run(&prog).unwrap();
+        Interpreter::new().run(&prog).unwrap();
     }
 }
