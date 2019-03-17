@@ -19,7 +19,6 @@
  * along with this program.  If not, see <http: //www.gnu.org/licenses/>.
  */
 
-use super::Strip;
 use std::{
     io::{self, Read, Write},
     u32, u8,
@@ -32,14 +31,6 @@ pub fn trunc(mut v: u32) -> u8 {
         v -= umax
     }
     v as u8
-}
-
-/// Reads the cell with `index` from `strip`.
-///
-/// Returns the value of the specified cell and
-/// initializes it with 0 if necessary.
-pub fn get(strip: &mut Strip, index: i64) -> u8 {
-    *strip.entry(index).or_insert(0)
 }
 
 /// Reads exactly one byte from `io::stdin`.

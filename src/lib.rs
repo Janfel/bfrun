@@ -182,19 +182,19 @@ impl<'a> Interpreter<'a> {
                 '-' => self.char_buf.insert(c),
                 '<' => self.char_buf.insert(c),
                 '>' => self.char_buf.insert(c),
-                '.' => ops::put_byte(ops::get(&mut self.strip, self.addr_ptr)),
+                '.' => ops::put_byte(self.read(self.addr_ptr)),
                 ',' => {
                     self.strip.insert(self.addr_ptr, ops::get_byte());
                 }
                 '[' => {
-                    if ops::get(&mut self.strip, self.addr_ptr) == 0 {
+                    if self.read(self.addr_ptr) == 0 {
                         self.skip_ctr = 1
                     } else {
                         self.jumps.push(i)
                     };
                 }
                 ']' => {
-                    if ops::get(&mut self.strip, self.addr_ptr) == 0 {
+                    if self.read(self.addr_ptr) == 0 {
                         self.jumps.pop();
                     } else {
                         i = *self.jumps.last().ok_or(Error::MissingLeftBracket)? as usize; // !! Beware casting errors
@@ -207,6 +207,14 @@ impl<'a> Interpreter<'a> {
         }
 
         Ok(())
+    }
+
+    /// Reads the cell with `index` from `strip`.
+    ///
+    /// Returns the value of the specified cell and
+    /// initializes it with 0 if necessary.
+    fn read(&mut self, index: i64) -> u8 {
+        *self.strip.entry(index).or_insert(0)
     }
 }
 
