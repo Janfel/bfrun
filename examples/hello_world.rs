@@ -22,7 +22,7 @@ extern crate bfrun;
 use bfrun::{read_file, run};
 use std::error::Error;
 
-const FNAME: &'static str = "examples/hello_world.b";
+const FNAME: &str = "examples/hello_world.b";
 
 fn main() -> Result<(), Box<Error>> {
     let prog = read_file(FNAME)?;

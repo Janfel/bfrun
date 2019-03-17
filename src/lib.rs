@@ -25,13 +25,9 @@
 
 mod analyze;
 pub mod error;
-use error::*;
-use std::{
-    collections::HashMap,
-    fs,
-    io::{self, Read, Write},
-    u8,
-};
+pub use error::{Error, Result};
+mod ops;
+use std::{collections::HashMap, fs, io, u8};
 
 /// All valid brainfuck operators.
 const VALID_CHARS: [char; 8] = ['+', '-', '<', '>', '.', ',', '[', ']'];
@@ -79,11 +75,11 @@ impl CharBuf {
         // TODO Extract exec() fn.
         match self.ch_opt.unwrap() {
             '+' => {
-                let t = get(&mut strip, *addr_ptr).wrapping_add(trunc(self.ctr));
+                let t = ops::get(&mut strip, *addr_ptr).wrapping_add(ops::trunc(self.ctr));
                 strip.insert(*addr_ptr, t);
             }
             '-' => {
-                let t = get(&mut strip, *addr_ptr).wrapping_sub(trunc(self.ctr));
+                let t = ops::get(&mut strip, *addr_ptr).wrapping_sub(ops::trunc(self.ctr));
                 strip.insert(*addr_ptr, t);
             }
             '<' => *addr_ptr -= self.ctr as isize, // !! Beware cast errors.
@@ -154,19 +150,19 @@ pub fn run(prog: &[char]) -> Result {
             '-' => char_buf.insert(c),
             '<' => char_buf.insert(c),
             '>' => char_buf.insert(c),
-            '.' => put_byte(get(&mut strip, addr_ptr)),
+            '.' => ops::put_byte(ops::get(&mut strip, addr_ptr)),
             ',' => {
-                strip.insert(addr_ptr, get_byte());
+                strip.insert(addr_ptr, ops::get_byte());
             }
             '[' => {
-                if get(&mut strip, addr_ptr) == 0 {
+                if ops::get(&mut strip, addr_ptr) == 0 {
                     skip_ctr = 1
                 } else {
                     jumps.push(i)
                 };
             }
             ']' => {
-                if get(&mut strip, addr_ptr) == 0 {
+                if ops::get(&mut strip, addr_ptr) == 0 {
                     jumps.pop();
                 } else {
                     i = *jumps.last().ok_or(Error::MissingLeftBracket)?;
@@ -179,49 +175,6 @@ pub fn run(prog: &[char]) -> Result {
     }
 
     Ok(())
-}
-
-// TODO Test replacement by `x as u8`.
-fn trunc(mut v: usize) -> u8 {
-    let umax = u8::MAX as usize;
-    while v > umax {
-        v -= umax
-    }
-    v as u8
-}
-
-/// Reads the cell with `index` from `strip`.
-///
-/// Returns the value of the specified cell and
-/// initializes it with 0 if necessary.
-fn get(strip: &mut Strip, index: isize) -> u8 {
-    *strip.entry(index).or_insert(0)
-}
-
-/// Reads exactly one byte from `io::stdin`.
-///
-/// # Panics
-/// If an `io::Error` occurs during `read_exact()`.
-/// This is a runtime error in the brainfuck program.
-/// A panic is justified because brainfuck has no
-/// means of handling such an error.
-fn get_byte() -> u8 {
-    // TODO change to `impl Read`.
-    let mut buf = vec![0; 1];
-    io::stdin().read_exact(&mut buf).unwrap(); // TODO Better error handling.
-    buf[0]
-}
-
-/// Writes exactly one byte to `io::stdout`.
-///
-/// # Panics
-/// If an `io::Error` occurs during `write_all()`.
-/// This is a runtime error in the brainfuck program.
-/// A panic is justified because brainfuck has no
-/// means of handling such an error.
-fn put_byte(b: u8) {
-    // TODO change to `impl Write`.
-    io::stdout().write_all(&[b; 1]).unwrap(); // TODO Better error handling.
 }
 
 /// The strip of memory brainfuck uses.
