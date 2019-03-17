@@ -99,7 +99,17 @@ impl<'a> Interpreter<'a> {
             char_buf: CharBuf::new(),
         }
     }
-    // TODO Add bfin bfout builders
+
+    pub fn bfin(mut self, ins: &'a mut impl Read) -> Self {
+        self.bfin = Some(ins);
+        self
+    }
+
+    pub fn bfout(mut self, outs: &'a mut impl Write) -> Self {
+        self.bfout = Some(outs);
+        self
+    }
+
     pub fn clear(&mut self) {
         self.strip = Strip::new();
         self.jumps = Vec::new();
@@ -119,10 +129,8 @@ impl<'a> Interpreter<'a> {
     /// If an IO error occurs during the execution of the brainfuck program.
     pub fn run(&mut self, prog: &[char]) -> Result {
         analyze::all(prog)?;
-
         let endval = prog.len();
 
-        // TODO Change back to while {}.
         while self.prog_ctr < endval {
             let c = prog[self.prog_ctr];
 
