@@ -216,6 +216,35 @@ impl<'a> Interpreter<'a> {
     fn read(&mut self, index: i64) -> u8 {
         *self.strip.entry(index).or_insert(0)
     }
+
+    /// Reads exactly one byte from `io::stdin`.
+    ///
+    /// # Panics
+    /// If an `io::Error` occurs during `read_exact()`.
+    /// This is a runtime error in the brainfuck program.
+    /// A panic is justified because brainfuck has no
+    /// means of handling such an error.
+    pub fn get_byte(&mut self) -> u8 {
+        // TODO change to `impl Read`.
+        let mut buf = vec![0; 1];
+        self.bfin
+            .read_exact(&mut buf)
+            .expect("error while reading from bfin"); // TODO Better error handling. Maybe bferr?
+        buf[0]
+    }
+
+    /// Writes exactly one byte to `io::stdout`.
+    ///
+    /// # Panics
+    /// If an `io::Error` occurs during `write_all()`.
+    /// This is a runtime error in the brainfuck program.
+    /// A panic is justified because brainfuck has no
+    /// means of handling such an error.
+    pub fn put_byte(&mut self, b: u8) {
+        self.bfout
+            .write_all(&[b; 1])
+            .expect("error while writing to bfout"); // TODO Better error handling. Maybe bferr?
+    }
 }
 
 // TODO Integrate into preprocessor.
@@ -225,6 +254,15 @@ pub fn read_file(fname: &str) -> io::Result<Vec<char>> {
         .filter(|x| VALID_CHARS.contains(x))
         .collect();
     Ok(prog)
+}
+
+// TODO Test replacement by `x as u8`.
+fn trunc(mut v: u32) -> u8 {
+    let umax = u32::from(u8::MAX);
+    while v > umax {
+        v -= umax
+    }
+    v as u8
 }
 
 /// The strip of memory brainfuck uses.
