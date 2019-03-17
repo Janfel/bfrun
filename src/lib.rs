@@ -103,6 +103,14 @@ pub fn read_file(fname: &str) -> io::Result<Vec<char>> {
     Ok(prog)
 }
 
+/// Runs a brainfuck program.
+///
+/// This function takes a slice of brainfuck instructions,
+/// preprocesses them and executes them in-memory.
+/// # Errors
+/// Returns any of the runtime errors in `bfrun::error::Error`.
+/// # Panics
+/// If an IO error occurs during the execution of the brainfuck program.
 pub fn run(prog: &[char]) -> Result {
     analyze::all(prog)?;
 
