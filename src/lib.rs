@@ -85,7 +85,6 @@ pub struct Interpreter<'a> {
     prog_ctr: usize,
     skip_ctr: u32,
     char_buf: CharBuf,
-    dirty: bool,
 }
 
 impl<'a> Interpreter<'a> {
@@ -99,7 +98,6 @@ impl<'a> Interpreter<'a> {
             prog_ctr: 0,
             skip_ctr: 0,
             char_buf: CharBuf::new(),
-            dirty: false,
         }
     }
 
@@ -110,6 +108,9 @@ impl<'a> Interpreter<'a> {
         self.prog_ctr = 0;
         self.skip_ctr = 0;
         self.char_buf = CharBuf::default();
+        if LOGGING {
+            eprintln!("I'm clear")
+        }
     }
 
     /// Runs a brainfuck program.
@@ -123,17 +124,17 @@ impl<'a> Interpreter<'a> {
     pub fn run(&mut self, prog: &[char]) -> Result {
         analyze::all(prog)?;
 
-        if self.dirty {
-            self.clear();
-            self.dirty = true;
-        }
+        let endval = prog.len();
 
         // TODO Change back to while {}.
-        while self.prog_ctr < prog.len() {
+        while self.prog_ctr < endval {
             let c = prog[self.prog_ctr];
 
             if LOGGING {
-                eprintln!("Loop {} Char {}", self.prog_ctr, c)
+                eprintln!(
+                    "Loop {} Char {} Ptr {} Strip {:?}",
+                    self.prog_ctr, c, self.addr_ptr, self.strip
+                )
             }
 
             if self.skip_ctr != 0 {
@@ -160,14 +161,27 @@ impl<'a> Interpreter<'a> {
                 _ => self.exec(c, 1),
             };
 
+            if LOGGING {
+                eprintln!("While state {} of {}", self.prog_ctr, endval)
+            }
+
             self.prog_ctr += 1; // Increment loop counter.
         }
+
         self.flush_buf();
+        self.clear();
+
+        if LOGGING {
+            eprintln!("I'm through")
+        }
 
         Ok(())
     }
 
     fn exec(&mut self, c: char, num: u32) {
+        if LOGGING {
+            eprintln!("Exec {} * {}", c, num)
+        }
         match c {
             '+' => {
                 let t = self.read().wrapping_add(trunc(num));
@@ -252,6 +266,10 @@ impl<'a> Interpreter<'a> {
         }
 
         self.char_buf.clear();
+
+        if LOGGING {
+            eprintln!("I'm flush")
+        }
     }
 }
 
