@@ -228,12 +228,10 @@ impl<'a> Interpreter<'a> {
 
         if let Some(s) = &mut self.bfin {
             s.read_exact(&mut buf)
-                .expect("error while reading from bfin"); // TODO Better error handling. Maybe bferr?
         } else {
-            io::stdin()
-                .read_exact(&mut buf)
-                .expect("error while reading from bfin"); // TODO Better error handling. Maybe bferr?
-        };
+            io::stdin().read_exact(&mut buf)
+        }
+        .expect("error while reading from bfin"); // TODO Better error handling. Maybe bferr?
 
         self.write(buf[0]);
     }
@@ -246,15 +244,14 @@ impl<'a> Interpreter<'a> {
     /// A panic is justified because brainfuck has no
     /// means of handling such an error.
     fn write_byte(&mut self) {
-        let b = self.read();
+        let buf = &[self.read(); 1];
 
         if let Some(s) = &mut self.bfout {
-            s.write_all(&[b; 1]).expect("error while writing to bfout"); // TODO Better error handling. Maybe bferr?
+            s.write_all(buf)
         } else {
-            io::stdout()
-                .write_all(&[b; 1])
-                .expect("error while writing to bfout"); // TODO Better error handling. Maybe bferr?
+            io::stdout().write_all(buf)
         }
+        .expect("error while writing to bfout"); // TODO Better error handling. Maybe bferr?
     }
 
     fn flush_buf(&mut self) {
