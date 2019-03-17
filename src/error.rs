@@ -1,4 +1,7 @@
-//! Errors that can occurr during brainfuck execution.
+//! Errors that occurr during compile-time or runtime.
+//!
+//! This module contains the `Error` and `Result` types
+//! used by the bfrun interpreter.
 
 /*
  * Copyright (C) 2019 Jan Felix Langenbach
@@ -21,10 +24,14 @@
 
 use std::{error::Error as StdError, fmt, result::Result as StdResult};
 
+/// Errors that occurr while parsing and checking the program.
 #[derive(Copy, Debug, Clone, PartialEq, Eq)]
 pub enum Error {
-    MissingRightBracket,
+    /// There are more left brackets than right brackets in the program.
+    MissingRightBracket, // TODO Add counters.
+    /// There are more right brackets than left brackets in the program.
     MissingLeftBracket,
+    /// There is no input file.
     NoInputFile,
 }
 
