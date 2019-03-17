@@ -193,8 +193,8 @@ impl<'a> Interpreter<'a> {
             }
             '<' => self.addr_ptr -= i64::from(num),
             '>' => self.addr_ptr += i64::from(num),
-            '.' => self.read_byte(),
-            ',' => self.write_byte(),
+            '.' => self.write_byte(),
+            ',' => self.read_byte(),
             '[' => {
                 if self.read() == 0 {
                     self.skip_ctr = 1
@@ -263,12 +263,20 @@ impl<'a> Interpreter<'a> {
     fn write_byte(&mut self) {
         let b = self.read();
 
+        if LOGGING {
+            eprintln!("Before writing {:?}", b)
+        }
+
         if let Some(s) = &mut self.bfout {
             s.write_all(&[b; 1]).expect("error while writing to bfout"); // TODO Better error handling. Maybe bferr?
         } else {
             io::stdout()
                 .write_all(&[b; 1])
                 .expect("error while writing to bfout"); // TODO Better error handling. Maybe bferr?
+        }
+
+        if LOGGING {
+            eprintln!("After writing {:?}", b)
         }
     }
 
