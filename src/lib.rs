@@ -33,8 +33,6 @@ use std::{
     u8,
 };
 
-const LOGGING: bool = true;
-
 /// All valid brainfuck operators.
 const VALID_CHARS: [char; 8] = ['+', '-', '<', '>', '.', ',', '[', ']'];
 
@@ -76,6 +74,7 @@ impl CharBuf {
     }
 }
 
+#[derive(Default)]
 pub struct Interpreter<'a> {
     bfin: Option<&'a mut Read>,
     bfout: Option<&'a mut Write>,
@@ -108,9 +107,6 @@ impl<'a> Interpreter<'a> {
         self.prog_ctr = 0;
         self.skip_ctr = 0;
         self.char_buf = CharBuf::default();
-        if LOGGING {
-            eprintln!("I'm clear")
-        }
     }
 
     /// Runs a brainfuck program.
@@ -129,13 +125,6 @@ impl<'a> Interpreter<'a> {
         // TODO Change back to while {}.
         while self.prog_ctr < endval {
             let c = prog[self.prog_ctr];
-
-            if LOGGING {
-                eprintln!(
-                    "Loop {} Char {} Ptr {} Strip {:?}",
-                    self.prog_ctr, c, self.addr_ptr, self.strip
-                )
-            }
 
             if self.skip_ctr != 0 {
                 match c {
@@ -161,27 +150,15 @@ impl<'a> Interpreter<'a> {
                 _ => self.exec(c, 1),
             };
 
-            if LOGGING {
-                eprintln!("While state {} of {}", self.prog_ctr, endval)
-            }
-
             self.prog_ctr += 1; // Increment loop counter.
         }
 
         self.flush_buf();
         self.clear();
-
-        if LOGGING {
-            eprintln!("I'm through")
-        }
-
         Ok(())
     }
 
     fn exec(&mut self, c: char, num: u32) {
-        if LOGGING {
-            eprintln!("Exec {} * {}", c, num)
-        }
         match c {
             '+' => {
                 let t = self.read().wrapping_add(trunc(num));
@@ -263,20 +240,12 @@ impl<'a> Interpreter<'a> {
     fn write_byte(&mut self) {
         let b = self.read();
 
-        if LOGGING {
-            eprintln!("Before writing {:?}", b)
-        }
-
         if let Some(s) = &mut self.bfout {
             s.write_all(&[b; 1]).expect("error while writing to bfout"); // TODO Better error handling. Maybe bferr?
         } else {
             io::stdout()
                 .write_all(&[b; 1])
                 .expect("error while writing to bfout"); // TODO Better error handling. Maybe bferr?
-        }
-
-        if LOGGING {
-            eprintln!("After writing {:?}", b)
         }
     }
 
@@ -286,10 +255,6 @@ impl<'a> Interpreter<'a> {
         }
 
         self.char_buf.clear();
-
-        if LOGGING {
-            eprintln!("I'm flush")
-        }
     }
 }
 
