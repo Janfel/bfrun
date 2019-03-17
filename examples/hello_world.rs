@@ -20,7 +20,7 @@
 extern crate bfrun;
 
 use bfrun::{read_file, Interpreter};
-use std::error::Error;
+use std::{error::Error, io};
 
 const FNAME: &str = "examples/hello_world.b";
 

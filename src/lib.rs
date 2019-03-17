@@ -225,12 +225,13 @@ type Strip = HashMap<i64, u8>;
 #[cfg(test)]
 mod test_runbf {
     use super::{read_file, Interpreter};
+    use std::io;
 
     #[test]
     fn test_runtime_error() {
-        let prog = read_file("hello_world.b").unwrap();
+        let prog = read_file("examples/hello_world.b").unwrap();
         let mut bfin = io::stdin();
         let mut bfout = io::stdout();
-        Interpreter::new(&mut bfin, &mut bfout).run(&prog)?;
+        Interpreter::new(&mut bfin, &mut bfout).run(&prog).unwrap();
     }
 }
