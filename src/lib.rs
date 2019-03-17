@@ -30,7 +30,7 @@ mod ops;
 use std::{
     collections::HashMap,
     fs,
-    io::{self, Read, Stdin, Stdout, Write},
+    io::{self, Read, Write},
     u8,
 };
 
@@ -91,8 +91,8 @@ impl CharBuf {
                 let t = ops::get(&mut strip, *addr_ptr).wrapping_sub(ops::trunc(self.ctr));
                 strip.insert(*addr_ptr, t);
             }
-            '<' => *addr_ptr -= self.ctr as isize, // !! Beware cast errors.
-            '>' => *addr_ptr += self.ctr as isize, // TODO Use crate `cast`.
+            '<' => *addr_ptr -= self.ctr as i64, // !! Beware cast errors.
+            '>' => *addr_ptr += self.ctr as i64, // TODO Use crate `cast`.
             _ => {}
         };
         self.clear();
@@ -103,7 +103,7 @@ pub struct Interpreter<'a> {
     bfin: &'a mut Read,
     bfout: &'a mut Write,
     strip: Strip,
-    jumps: Vec<u32>,
+    jumps: Vec<usize>,
     addr_ptr: i64,
     skip_ctr: u32,
     char_buf: CharBuf,
@@ -197,7 +197,7 @@ impl<'a> Interpreter<'a> {
                     if ops::get(&mut self.strip, self.addr_ptr) == 0 {
                         self.jumps.pop();
                     } else {
-                        i = *self.jumps.last().ok_or(Error::MissingLeftBracket)?;
+                        i = *self.jumps.last().ok_or(Error::MissingLeftBracket)? as usize; // !! Beware casting errors
                     };
                 }
                 _ => (),
@@ -224,11 +224,13 @@ type Strip = HashMap<i64, u8>;
 
 #[cfg(test)]
 mod test_runbf {
-    use super::{read_file, run};
+    use super::{read_file, Interpreter};
 
     #[test]
     fn test_runtime_error() {
         let prog = read_file("hello_world.b").unwrap();
-        run(&prog).unwrap();
+        let mut bfin = io::stdin();
+        let mut bfout = io::stdout();
+        Interpreter::new(&mut bfin, &mut bfout).run(&prog)?;
     }
 }

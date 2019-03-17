@@ -22,12 +22,12 @@
 use super::Strip;
 use std::{
     io::{self, Read, Write},
-    u8,
+    u32, u8,
 };
 
 // TODO Test replacement by `x as u8`.
 pub fn trunc(mut v: u32) -> u8 {
-    let umax = u8::MAX as usize;
+    let umax = u32::from(u8::MAX);
     while v > umax {
         v -= umax
     }

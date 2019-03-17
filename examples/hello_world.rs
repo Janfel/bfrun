@@ -19,13 +19,15 @@
 
 extern crate bfrun;
 
-use bfrun::{read_file, run};
+use bfrun::{read_file, Interpreter};
 use std::error::Error;
 
 const FNAME: &str = "examples/hello_world.b";
 
 fn main() -> Result<(), Box<Error>> {
     let prog = read_file(FNAME)?;
-    run(&prog)?;
+    let mut bfin = io::stdin();
+    let mut bfout = io::stdout();
+    Interpreter::new(&mut bfin, &mut bfout).run(&prog)?;
     Ok(())
 }
