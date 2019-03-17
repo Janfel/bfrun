@@ -26,7 +26,6 @@
 mod analyze;
 pub mod error;
 pub use error::{Error, Result};
-mod ops;
 use std::{
     collections::HashMap,
     fs,
@@ -73,30 +72,6 @@ impl CharBuf {
         self.ch_opt = None;
         self.ctr = 0;
     }
-
-    // TODO Change to callback fn.
-    pub fn flush(&mut self, mut strip: &mut Strip, addr_ptr: &mut i64) {
-        if self.ch_opt.is_none() {
-            self.clear(); // Setting self.ctr = 0 would do the trick, but also introduce duplication.
-            return;
-        }
-
-        // TODO Extract exec() fn.
-        match self.ch_opt.unwrap() {
-            '+' => {
-                let t = ops::get(&mut strip, *addr_ptr).wrapping_add(ops::trunc(self.ctr));
-                strip.insert(*addr_ptr, t);
-            }
-            '-' => {
-                let t = ops::get(&mut strip, *addr_ptr).wrapping_sub(ops::trunc(self.ctr));
-                strip.insert(*addr_ptr, t);
-            }
-            '<' => *addr_ptr -= self.ctr as i64, // !! Beware cast errors.
-            '>' => *addr_ptr += self.ctr as i64, // TODO Use crate `cast`.
-            _ => {}
-        };
-        self.clear();
-    }
 }
 
 pub struct Interpreter<'a> {
@@ -105,6 +80,7 @@ pub struct Interpreter<'a> {
     strip: Strip,
     jumps: Vec<usize>,
     addr_ptr: i64,
+    prog_ctr: usize,
     skip_ctr: u32,
     char_buf: CharBuf,
     dirty: bool,
@@ -118,6 +94,7 @@ impl<'a> Interpreter<'a> {
             strip: Strip::new(),
             jumps: Vec::new(),
             addr_ptr: 0,
+            prog_ctr: 0,
             skip_ctr: 0,
             char_buf: CharBuf::new(),
             dirty: false,
@@ -128,6 +105,7 @@ impl<'a> Interpreter<'a> {
         self.strip = Strip::new();
         self.jumps = Vec::new();
         self.addr_ptr = 0;
+        self.prog_ctr = 0;
         self.skip_ctr = 0;
         self.char_buf = CharBuf::default();
     }
@@ -148,17 +126,9 @@ impl<'a> Interpreter<'a> {
             self.dirty = true;
         }
 
-        let mut i = 0; // Loop counter.
-
         // TODO Change back to while {}.
-        loop {
-            // Check loop counter.
-            if i >= prog.len() {
-                self.char_buf.flush(&mut self.strip, &mut self.addr_ptr); // TODO Move after while {}.
-                break;
-            }
-
-            let c = prog[i];
+        while self.prog_ctr < prog.len() {
+            let c = prog[self.prog_ctr];
 
             if self.skip_ctr != 0 {
                 match c {
@@ -166,84 +136,116 @@ impl<'a> Interpreter<'a> {
                     ']' => self.skip_ctr -= 1,
                     _ => {}
                 }
-                i += 1; // Increment loop counter.
+                self.prog_ctr += 1; // Increment loop counter.
                 continue;
             }
 
             if let Some(buf_c) = self.char_buf.ch_opt {
                 if buf_c != c {
-                    self.char_buf.flush(&mut self.strip, &mut self.addr_ptr)
+                    self.flush_buf();
                 }
             }
 
-            // TODO Extract exec() fn.
             match c {
                 '+' => self.char_buf.insert(c),
                 '-' => self.char_buf.insert(c),
                 '<' => self.char_buf.insert(c),
                 '>' => self.char_buf.insert(c),
-                '.' => ops::put_byte(self.read(self.addr_ptr)),
-                ',' => {
-                    self.strip.insert(self.addr_ptr, ops::get_byte());
-                }
-                '[' => {
-                    if self.read(self.addr_ptr) == 0 {
-                        self.skip_ctr = 1
-                    } else {
-                        self.jumps.push(i)
-                    };
-                }
-                ']' => {
-                    if self.read(self.addr_ptr) == 0 {
-                        self.jumps.pop();
-                    } else {
-                        i = *self.jumps.last().ok_or(Error::MissingLeftBracket)? as usize; // !! Beware casting errors
-                    };
-                }
-                _ => (),
+                _ => self.exec(c, 1),
             };
 
-            i += 1; // Increment loop counter.
+            self.prog_ctr += 1; // Increment loop counter.
         }
+        self.flush_buf();
 
         Ok(())
     }
 
-    /// Reads the cell with `index` from `strip`.
+    fn exec(&mut self, c: char, num: u32) {
+        match c {
+            '+' => {
+                let t = self.read().wrapping_add(trunc(num));
+                self.write(t);
+            }
+            '-' => {
+                let t = self.read().wrapping_sub(trunc(num));
+                self.write(t);
+            }
+            '<' => self.addr_ptr -= i64::from(num),
+            '>' => self.addr_ptr += i64::from(num),
+            '.' => self.read_byte(),
+            ',' => self.write_byte(),
+            '[' => {
+                if self.read() == 0 {
+                    self.skip_ctr = 1
+                } else {
+                    self.jumps.push(self.prog_ctr)
+                };
+            }
+            ']' => {
+                if self.read() == 0 {
+                    self.jumps.pop();
+                } else {
+                    self.prog_ctr = *self
+                        .jumps
+                        .last()
+                        .ok_or(Error::MissingLeftBracket)
+                        .expect("unsanitized code executed");
+                };
+            }
+            _ => panic!("trying to execute invalid command char"),
+        };
+    }
+
+    /// Reads out the active cell.
     ///
     /// Returns the value of the specified cell and
     /// initializes it with 0 if necessary.
-    fn read(&mut self, index: i64) -> u8 {
-        *self.strip.entry(index).or_insert(0)
+    fn read(&mut self) -> u8 {
+        *self.strip.entry(self.addr_ptr).or_insert(0)
     }
 
-    /// Reads exactly one byte from `io::stdin`.
+    /// Writes `val` into the active cell.
+    fn write(&mut self, val: u8) {
+        self.strip.insert(self.addr_ptr, val);
+    }
+
+    /// Reads one byte from `io::stdin` and saves it.
     ///
     /// # Panics
     /// If an `io::Error` occurs during `read_exact()`.
     /// This is a runtime error in the brainfuck program.
     /// A panic is justified because brainfuck has no
     /// means of handling such an error.
-    pub fn get_byte(&mut self) -> u8 {
+    fn read_byte(&mut self) {
         // TODO change to `impl Read`.
         let mut buf = vec![0; 1];
         self.bfin
             .read_exact(&mut buf)
             .expect("error while reading from bfin"); // TODO Better error handling. Maybe bferr?
-        buf[0]
+        self.write(buf[0]);
     }
 
-    /// Writes exactly one byte to `io::stdout`.
+    /// Writes the active cell as byte to `io::stdout`.
     ///
     /// # Panics
     /// If an `io::Error` occurs during `write_all()`.
     /// This is a runtime error in the brainfuck program.
     /// A panic is justified because brainfuck has no
     /// means of handling such an error.
-    pub fn put_byte(&mut self, b: u8) {
+    fn write_byte(&mut self) {
+        let b = self.read();
         self.bfout
             .write_all(&[b; 1])
             .expect("error while writing to bfout"); // TODO Better error handling. Maybe bferr?
+    }
+
+    fn flush_buf(&mut self) {
+        if let Some(c) = self.char_buf.ch_opt {
+            self.exec(c, self.char_buf.ctr)
+        }
+
+        self.char_buf.clear();
     }
 }
 
