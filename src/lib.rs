@@ -33,6 +33,8 @@ use std::{
     u8,
 };
 
+const LOGGING: bool = true;
+
 /// All valid brainfuck operators.
 const VALID_CHARS: [char; 8] = ['+', '-', '<', '>', '.', ',', '[', ']'];
 
@@ -129,6 +131,10 @@ impl<'a> Interpreter<'a> {
         // TODO Change back to while {}.
         while self.prog_ctr < prog.len() {
             let c = prog[self.prog_ctr];
+
+            if LOGGING {
+                eprintln!("Loop {} Char {}", self.prog_ctr, c)
+            }
 
             if self.skip_ctr != 0 {
                 match c {
