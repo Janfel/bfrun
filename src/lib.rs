@@ -270,12 +270,7 @@ pub fn read_file(fname: &str) -> io::Result<Vec<char>> {
     Ok(prog)
 }
 
-// TODO Test replacement by `x as u8`.
-fn wrap(mut v: u32) -> u8 {
-    let ulen = u32::from(u8::MAX) + 1;
-    while v >= ulen {
-        v -= ulen;
-    }
+fn wrap(v: u32) -> u8 {
     v as u8
 }
 
@@ -305,6 +300,9 @@ mod test_runbf {
 
     #[test]
     fn test_wrap() {
-        assert_eq!(wrap(23 + 256 + 256), 23)
+        assert_eq!(wrap(12), 12);
+        assert_eq!(wrap(23 + 256), 23);
+        assert_eq!(wrap(256), 0);
+        assert_eq!(wrap(23 + 256 + 256), 23);
     }
 }
