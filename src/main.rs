@@ -19,12 +19,12 @@
 
 extern crate bfrun;
 
-use bfrun::{error::Error, Interpreter};
-use std::{env, error::Error as StdError, fs};
+use bfrun::{error::Error, read_file, Interpreter};
+use std::{env, error::Error as StdError};
 
 fn main() -> Result<(), Box<StdError>> {
     let fname = env::args().nth(1).ok_or(Error::NoInputFile)?;
-    let prog: Vec<char> = fs::read_to_string(fname)?.chars().collect();
+    let prog = read_file(fname)?;
 
     Interpreter::new().run(prog)?;
     Ok(())
