@@ -2,7 +2,7 @@
 
 > A brainfuck interpreter written in Rust.
 
-<!--  [![Build Status][travis-image]][travis-url] -->
+[![Build Status](https://travis-ci.com/Janfel/bfrun.svg?branch=master)](https://travis-ci.com/Janfel/bfrun)
 
 This program aims to be a straightforward interpreter for the brainfuck programming language. It is still under development and breaking changes are to be expected.
 
