@@ -28,7 +28,6 @@ pub use error::{Error, Result};
 mod pre;
 use std::{
     collections::HashMap,
-    fs,
     io::{self, Read, Write},
     u8,
 };
@@ -118,7 +117,7 @@ impl<'a> Interpreter<'a> {
     /// Returns any of the runtime errors in `bfrun::error::Error`.
     /// # Panics
     /// If an IO error occurs during the execution of the brainfuck program.
-    pub fn run(&mut self, prog: &[char]) -> Result {
+    pub fn run(&mut self, prog: Vec<char>) -> Result {
         let prog = pre::process(prog)?;
         let endval = prog.len();
 
@@ -259,15 +258,6 @@ impl<'a> Interpreter<'a> {
 
         self.char_buf.clear();
     }
-}
-
-// TODO Integrate into preprocessor.
-pub fn read_file(fname: &str) -> io::Result<Vec<char>> {
-    let prog = fs::read_to_string(fname)?
-        .chars()
-        .filter(|x| VALID_CHARS.contains(x))
-        .collect();
-    Ok(prog)
 }
 
 // TODO Test replacement by `x as u8`.

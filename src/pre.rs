@@ -20,11 +20,10 @@
 use super::VALID_CHARS;
 use crate::error::{Error, Result as BfResult};
 
-pub fn process(prog: &[char]) -> Result<Vec<char>, Error> {
+pub fn process(prog: Vec<char>) -> Result<Vec<char>, Error> {
     let res: Vec<char> = prog
-        .iter()
+        .into_iter()
         .filter(|x| VALID_CHARS.contains(x))
-        .cloned()
         .collect();
 
     brackets(&res)?;
