@@ -24,8 +24,8 @@ use std::{env, error::Error as StdError};
 
 fn main() -> Result<(), Box<StdError>> {
     let fname = env::args().nth(1).ok_or(Error::NoInputFile)?;
-    let prog = read_file(&fname)?;
+    let prog = read_file(fname)?;
 
-    Interpreter::new().run(&prog)?;
+    Interpreter::new().run(prog)?;
     Ok(())
 }

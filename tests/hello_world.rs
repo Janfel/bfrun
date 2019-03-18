@@ -25,6 +25,6 @@ fn hello_world() {
     let prog = read_file("tests/hello_world.b").unwrap();
     let mut bfout = Vec::new();
     let expected = "Hello World!\n";
-    Interpreter::new().bfout(&mut bfout).run(&prog).unwrap();
+    Interpreter::new().bfout(&mut bfout).run(prog).unwrap();
     assert_eq!(&String::from_utf8(bfout).unwrap(), expected)
 }

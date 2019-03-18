@@ -1,5 +1,3 @@
-// TODO Implement preprocessing.
-
 /*
  * Copyright (C) 2019 Jan Felix Langenbach
  *
@@ -19,13 +17,21 @@
  * along with this program.  If not, see <http: //www.gnu.org/licenses/>.
  */
 
-use crate::error::{Error, Result};
+use super::VALID_CHARS;
+use crate::error::{Error, Result as BfResult};
 
-pub fn all(prog: &[char]) -> Result {
-    brackets(prog)
+pub fn process(prog: Vec<char>) -> Result<Vec<char>, Error> {
+    let res: Vec<char> = prog
+        .into_iter()
+        .filter(|x| VALID_CHARS.contains(x))
+        .collect();
+
+    brackets(&res)?;
+
+    Ok(res)
 }
 
-fn brackets(prog: &[char]) -> Result {
+fn brackets(prog: &[char]) -> BfResult {
     let mut acc = 0;
     for c in prog.iter() {
         match c {

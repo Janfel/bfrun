@@ -23,13 +23,14 @@
  * along with this program.  If not, see <http: //www.gnu.org/licenses/>.
  */
 
-mod analyze;
 pub mod error;
 pub use error::{Error, Result};
+mod pre;
 use std::{
     collections::HashMap,
     fs,
     io::{self, Read, Write},
+    path::Path,
     u8,
 };
 
@@ -118,8 +119,8 @@ impl<'a> Interpreter<'a> {
     /// Returns any of the runtime errors in `bfrun::error::Error`.
     /// # Panics
     /// If an IO error occurs during the execution of the brainfuck program.
-    pub fn run(&mut self, prog: &[char]) -> Result {
-        analyze::all(prog)?;
+    pub fn run(&mut self, prog: Vec<char>) -> Result {
+        let prog = pre::process(prog)?;
         let endval = prog.len();
 
         while self.prog_ctr < endval {
@@ -261,13 +262,8 @@ impl<'a> Interpreter<'a> {
     }
 }
 
-// TODO Integrate into preprocessor.
-pub fn read_file(fname: &str) -> io::Result<Vec<char>> {
-    let prog = fs::read_to_string(fname)?
-        .chars()
-        .filter(|x| VALID_CHARS.contains(x))
-        .collect();
-    Ok(prog)
+pub fn read_file(fname: impl AsRef<Path>) -> io::Result<Vec<char>> {
+    Ok(fs::read_to_string(fname)?.chars().collect())
 }
 
 /// The strip of memory brainfuck uses.
@@ -282,7 +278,7 @@ mod test_runbf {
     #[test]
     fn runtime_error() {
         let prog = read_file("examples/hello_world.b").unwrap();
-        Interpreter::new().run(&prog).unwrap();
+        Interpreter::new().run(prog).unwrap();
     }
 
     #[test]
@@ -290,7 +286,7 @@ mod test_runbf {
         let prog: Vec<char> = HELLO_WORLD_PROG.chars().collect();
         let mut bfout = Vec::new();
         let expected = "Hello World!\n";
-        Interpreter::new().bfout(&mut bfout).run(&prog).unwrap();
+        Interpreter::new().bfout(&mut bfout).run(prog).unwrap();
         assert_eq!(&String::from_utf8(bfout).unwrap(), expected)
     }
 }
