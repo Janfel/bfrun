@@ -44,7 +44,7 @@ struct CharBuf {
     /// The char that is currently being buffered, if any.
     pub ch_opt: Option<char>,
     /// Counts the number of instances in the buffer.
-    pub ctr: u32, // TODO Change everything to u32/i32.
+    pub ctr: u32,
 }
 
 impl CharBuf {
@@ -78,11 +78,11 @@ impl CharBuf {
 pub struct Interpreter<'a> {
     bfin: Option<&'a mut Read>,
     bfout: Option<&'a mut Write>,
-    strip: Strip,
-    jumps: Vec<usize>,
     addr_ptr: i64,
     prog_ctr: usize,
     skip_ctr: u32,
+    strip: Strip,
+    jumps: Vec<usize>,
     char_buf: CharBuf,
 }
 
@@ -91,11 +91,11 @@ impl<'a> Interpreter<'a> {
         Self {
             bfin: None,
             bfout: None,
-            strip: Strip::new(),
-            jumps: Vec::new(),
             addr_ptr: 0,
             prog_ctr: 0,
             skip_ctr: 0,
+            strip: Strip::new(),
+            jumps: Vec::new(),
             char_buf: CharBuf::new(),
         }
     }
@@ -108,15 +108,6 @@ impl<'a> Interpreter<'a> {
     pub fn bfout(mut self, outs: &'a mut impl Write) -> Self {
         self.bfout = Some(outs);
         self
-    }
-
-    pub fn clear(&mut self) {
-        self.strip = Strip::new();
-        self.jumps = Vec::new();
-        self.addr_ptr = 0;
-        self.prog_ctr = 0;
-        self.skip_ctr = 0;
-        self.char_buf = CharBuf::default();
     }
 
     /// Runs a brainfuck program.
@@ -162,18 +153,26 @@ impl<'a> Interpreter<'a> {
         }
 
         self.flush_buf();
-        self.clear();
+
+        // Clear used fields.
+        self.addr_ptr = 0;
+        self.prog_ctr = 0;
+        self.skip_ctr = 0;
+        self.strip.clear();
+        self.jumps.clear();
+        self.char_buf.clear();
+
         Ok(())
     }
 
     fn exec(&mut self, c: char, num: u32) {
         match c {
             '+' => {
-                let t = self.read().wrapping_add(trunc(num));
+                let t = self.read().wrapping_add(wrap(num));
                 self.write(t);
             }
             '-' => {
-                let t = self.read().wrapping_sub(trunc(num));
+                let t = self.read().wrapping_sub(wrap(num));
                 self.write(t);
             }
             '<' => self.addr_ptr -= i64::from(num),
@@ -223,7 +222,6 @@ impl<'a> Interpreter<'a> {
     /// A panic is justified because brainfuck has no
     /// means of handling such an error.
     fn read_byte(&mut self) {
-        // TODO change to `impl Read`.
         let mut buf = vec![0; 1];
 
         if let Some(s) = &mut self.bfin {
@@ -231,7 +229,7 @@ impl<'a> Interpreter<'a> {
         } else {
             io::stdin().read_exact(&mut buf)
         }
-        .expect("error while reading from bfin"); // TODO Better error handling. Maybe bferr?
+        .expect("error while reading from bfin");
 
         self.write(buf[0]);
     }
@@ -251,7 +249,7 @@ impl<'a> Interpreter<'a> {
         } else {
             io::stdout().write_all(buf)
         }
-        .expect("error while writing to bfout"); // TODO Better error handling. Maybe bferr?
+        .expect("error while writing to bfout");
     }
 
     fn flush_buf(&mut self) {
@@ -273,10 +271,10 @@ pub fn read_file(fname: &str) -> io::Result<Vec<char>> {
 }
 
 // TODO Test replacement by `x as u8`.
-fn trunc(mut v: u32) -> u8 {
-    let umax = u32::from(u8::MAX);
-    while v > umax {
-        v -= umax
+fn wrap(mut v: u32) -> u8 {
+    let ulen = u32::from(u8::MAX) + 1;
+    while v >= ulen {
+        v -= ulen;
     }
     v as u8
 }
@@ -286,11 +284,27 @@ type Strip = HashMap<i64, u8>;
 
 #[cfg(test)]
 mod test_runbf {
-    use super::{read_file, Interpreter};
+    use super::*;
+
+    const HELLO_WORLD_PROG: &str = "[,.[.],..,,,+,-,<>,[]..]++++++++[>++++[>++>+++>+++>+<<<<-]>+>+>->>+[<]<-]>>.>---.+++++++..+++.>>.<-.<.+++.------.--------.>>+.>++.";
 
     #[test]
-    fn test_runtime_error() {
+    fn runtime_error() {
         let prog = read_file("examples/hello_world.b").unwrap();
         Interpreter::new().run(&prog).unwrap();
+    }
+
+    #[test]
+    fn hello_world() {
+        let prog: Vec<char> = HELLO_WORLD_PROG.chars().collect();
+        let mut bfout = Vec::new();
+        let expected = "Hello World!\n";
+        Interpreter::new().bfout(&mut bfout).run(&prog).unwrap();
+        assert_eq!(&String::from_utf8(bfout).unwrap(), expected)
+    }
+
+    #[test]
+    fn test_wrap() {
+        assert_eq!(wrap(23 + 256 + 256), 23)
     }
 }
