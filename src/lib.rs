@@ -168,11 +168,11 @@ impl<'a> Interpreter<'a> {
     fn exec(&mut self, c: char, num: u32) {
         match c {
             '+' => {
-                let t = self.read().wrapping_add(wrap(num));
+                let t = self.read().wrapping_add(num as u8);
                 self.write(t);
             }
             '-' => {
-                let t = self.read().wrapping_sub(wrap(num));
+                let t = self.read().wrapping_sub(num as u8);
                 self.write(t);
             }
             '<' => self.addr_ptr -= i64::from(num),
@@ -270,10 +270,6 @@ pub fn read_file(fname: &str) -> io::Result<Vec<char>> {
     Ok(prog)
 }
 
-fn wrap(v: u32) -> u8 {
-    v as u8
-}
-
 /// The strip of memory brainfuck uses.
 type Strip = HashMap<i64, u8>;
 
@@ -296,13 +292,5 @@ mod test_runbf {
         let expected = "Hello World!\n";
         Interpreter::new().bfout(&mut bfout).run(&prog).unwrap();
         assert_eq!(&String::from_utf8(bfout).unwrap(), expected)
-    }
-
-    #[test]
-    fn test_wrap() {
-        assert_eq!(wrap(12), 12);
-        assert_eq!(wrap(23 + 256), 23);
-        assert_eq!(wrap(256), 0);
-        assert_eq!(wrap(23 + 256 + 256), 23);
     }
 }
