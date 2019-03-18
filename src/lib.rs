@@ -120,7 +120,7 @@ impl<'a> Interpreter<'a> {
     /// # Panics
     /// If an IO error occurs during the execution of the brainfuck program.
     pub fn run(&mut self, prog: &[char]) -> Result {
-        analyze::all(prog)?;
+        let prog = pre::process(prog)?;
         let endval = prog.len();
 
         while self.prog_ctr < endval {

@@ -18,35 +18,37 @@
  */
 
 use super::VALID_CHARS;
-use crate::error::{Error, Result};
-use std::{result::Result as StdResult, sync::mpsc};
+use crate::error::{Error, Result as BfResult};
 
-trait Analyze {
-    fn analyze(&mut self, c: char) -> Result;
-}
-
-pub fn process<T>(prog: T) -> StdResult<Vec<char>, Vec<Error>>
-where
-    T: IntoIterator<Item = char>,
-{
-    let mut analyzers: Vec<&mut Analyze> = Vec::new();
-    let (tx, rx) = mpsc::channel();
-    let res = prog
-        .into_iter()
+pub fn process(prog: &[char]) -> Result<Vec<char>, Error> {
+    let res: Vec<char> = prog
+        .iter()
         .filter(|x| VALID_CHARS.contains(x))
-        .inspect(|x| {
-            for a in analyzers.iter_mut() {
-                if let Err(e) = a.analyze(*x) {
-                    tx.send(e).unwrap()
-                }
-            }
-        })
+        .cloned()
         .collect();
 
-    let errs: Vec<Error> = rx.into_iter().collect();
-    if !errs.is_empty() {
-        Err(errs)
-    } else {
-        Ok(res)
+    brackets(&res)?;
+
+    Ok(res)
+}
+
+fn brackets(prog: &[char]) -> BfResult {
+    let mut acc = 0;
+    for c in prog.iter() {
+        match c {
+            '[' => acc += 1,
+            ']' => {
+                if acc == 0 {
+                    return Err(Error::MissingLeftBracket);
+                } else {
+                    acc -= 1
+                }
+            }
+            _ => (),
+        }
     }
+    if acc != 0 {
+        return Err(Error::MissingRightBracket);
+    }
+    Ok(())
 }
