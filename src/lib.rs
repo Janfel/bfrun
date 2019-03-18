@@ -287,7 +287,7 @@ mod test_runbf {
     #[test]
     fn runtime_error() {
         let prog = read_file("examples/hello_world.b").unwrap();
-        Interpreter::new().run(&prog).unwrap();
+        Interpreter::new().run(prog).unwrap();
     }
 
     #[test]
@@ -295,7 +295,7 @@ mod test_runbf {
         let prog: Vec<char> = HELLO_WORLD_PROG.chars().collect();
         let mut bfout = Vec::new();
         let expected = "Hello World!\n";
-        Interpreter::new().bfout(&mut bfout).run(&prog).unwrap();
+        Interpreter::new().bfout(&mut bfout).run(prog).unwrap();
         assert_eq!(&String::from_utf8(bfout).unwrap(), expected)
     }
 

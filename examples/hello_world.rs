@@ -26,6 +26,6 @@ const FNAME: &str = "examples/hello_world.b";
 
 fn main() -> Result<(), Box<Error>> {
     let prog = read_file(FNAME)?;
-    Interpreter::new().run(&prog)?;
+    Interpreter::new().run(prog)?;
     Ok(())
 }
