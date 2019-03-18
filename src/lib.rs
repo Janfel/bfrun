@@ -28,7 +28,9 @@ pub use error::{Error, Result};
 mod pre;
 use std::{
     collections::HashMap,
+    fs,
     io::{self, Read, Write},
+    path::Path,
     u8,
 };
 
@@ -258,6 +260,10 @@ impl<'a> Interpreter<'a> {
 
         self.char_buf.clear();
     }
+}
+
+pub fn read_file(fname: impl AsRef<Path>) -> io::Result<Vec<char>> {
+    Ok(fs::read_to_string(fname)?.chars().collect())
 }
 
 // TODO Test replacement by `x as u8`.
