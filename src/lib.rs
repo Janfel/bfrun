@@ -23,7 +23,6 @@
  * along with this program.  If not, see <http: //www.gnu.org/licenses/>.
  */
 
-mod analyze;
 pub mod error;
 pub use error::{Error, Result};
 mod pre;
