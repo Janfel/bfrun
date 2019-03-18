@@ -26,6 +26,7 @@
 mod analyze;
 pub mod error;
 pub use error::{Error, Result};
+mod pre;
 use std::{
     collections::HashMap,
     fs,
