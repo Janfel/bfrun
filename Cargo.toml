@@ -3,5 +3,7 @@ name = "bfrun"
 version = "0.1.0"
 authors = ["Jan Felix Langenbach <o.hase3@gmail.com>"]
 edition = "2018"
+description = "A brainfuck interpreter written in Rust"
 
 [dependencies]
+clap = "^2.27.0"

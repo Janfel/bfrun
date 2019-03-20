@@ -17,15 +17,85 @@
  * along with this program.  If not, see <http: //www.gnu.org/licenses/>.
  */
 
+#[macro_use]
+extern crate clap;
 extern crate bfrun;
 
 use bfrun::{error::Error, read_file, Interpreter};
-use std::{env, error::Error as StdError};
+use std::{
+    env,
+    error::Error as StdError,
+    fs::{self, File, OpenOptions},
+    io::{self, BufReader, BufWriter, Read},
+};
 
 fn main() -> Result<(), Box<StdError>> {
-    let fname = env::args().nth(1).ok_or(Error::NoInputFile)?;
-    let prog = read_file(fname)?;
+    let matches = clap_app!(bfrun =>
+        (version: crate_version!())
+        (author: crate_authors!("\n"))
+        (about: crate_description!())
+        (@arg istream: -i --bfin [BFIN] "Sets the file the program reads from")
+        (@arg ostream: -o --bfout [BFOUT] "Sets the file the program writes to")
+        (@arg input: value_name[INPUT] ... "The input file or '-' for stdin")
+    )
+    .get_matches();
 
-    Interpreter::new().run(prog)?;
+    let mut int = Interpreter::new();
+
+    let mut bfin = matches
+        .value_of("istream")
+        .map(|x| BufReader::new(File::open(x).expect("unable to open bfin")));
+
+    let mut bfout = matches.value_of("ostream").map(|x| {
+        BufWriter::new(
+            OpenOptions::new()
+                .write(true)
+                .create(true)
+                .open(x)
+                .expect("unable to open bfout"),
+        )
+    });
+
+    let mut inputs = matches.values_of("input").map(|x| {
+        x.map(|y| {
+            if y == "-" {
+                let mut buf = String::new();
+                io::stdin()
+                    .read_to_string(&mut buf)
+                    .expect("unable to read from stdin");
+                buf
+            } else {
+                fs::read_to_string(y).expect("unable to read from input file")
+            }
+            .chars()
+            .collect::<Vec<char>>()
+        })
+    });
+
+    if let Some(ref mut v) = bfin {
+        int = int.bfin(v);
+    }
+
+    if let Some(ref mut v) = bfout {
+        int = int.bfout(v);
+    }
+
+    match inputs {
+        Some(iter) => {
+            for prog in iter {
+                int.run(prog)?;
+            }
+        }
+        None => {
+            int.run({
+                let mut buf = String::new();
+                io::stdin()
+                    .read_to_string(&mut buf)
+                    .expect("unable to read from stdin");
+                buf.chars().collect::<Vec<char>>()
+            })?;
+        }
+    }
+
     Ok(())
 }
