@@ -23,9 +23,13 @@
  * along with this program.  If not, see <http: //www.gnu.org/licenses/>.
  */
 
-pub mod error;
-pub use error::{Error, Result};
+mod cmdline;
+mod error;
 mod pre;
+
+pub use cmdline::{open_istream, open_ostream, read_prog};
+pub use error::{Error, Result};
+
 use std::{
     collections::HashMap,
     fs,

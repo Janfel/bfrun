@@ -21,14 +21,10 @@
 extern crate clap;
 extern crate bfrun;
 
-use bfrun::Interpreter;
-use std::{
-    error::Error as StdError,
-    fs::{self, File, OpenOptions},
-    io::{self, BufReader, BufWriter, Read, Write},
-};
+use bfrun::{open_istream, open_ostream, read_prog, Interpreter};
+use std::error::Error;
 
-fn main() -> Result<(), Box<StdError>> {
+fn main() -> Result<(), Box<Error>> {
     let matches = clap_app!(bfrun =>
         (version: crate_version!())
         (author: crate_authors!("\n"))
@@ -63,39 +59,4 @@ fn main() -> Result<(), Box<StdError>> {
     }
 
     Ok(())
-}
-
-fn read_prog(from: &str) -> String {
-    match from {
-        "-" => {
-            let mut buf = String::new();
-            io::stdin()
-                .read_to_string(&mut buf)
-                .expect("unable to read from stdin");
-            buf
-        }
-        _ => fs::read_to_string(from).expect("unable to read from input file"),
-    }
-}
-
-fn open_istream(from: &str) -> BufReader<Box<Read>> {
-    let stream: Box<Read> = match from {
-        "-" => Box::new(io::stdin()),
-        _ => Box::new(File::open(from).expect("unable to open bfin file")),
-    };
-    BufReader::new(stream)
-}
-
-fn open_ostream(from: &str) -> BufWriter<Box<Write>> {
-    let stream: Box<Write> = match from {
-        "-" => Box::new(io::stdout()),
-        _ => Box::new(
-            OpenOptions::new()
-                .append(true)
-                .create(true)
-                .open(from)
-                .expect("unable to open bfout file"),
-        ),
-    };
-    BufWriter::new(stream)
 }
