@@ -1,9 +1,3 @@
-//! A brainfuck interpreter written in Rust.
-//!
-//! This program aims to be a straightforward interpreter
-//! for the brainfuck programming language. It is still
-//! under development and breaking changes are to be expected.
-
 /*
  * Copyright (C) 2019 Jan Felix Langenbach
  *
@@ -22,6 +16,12 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http: //www.gnu.org/licenses/>.
  */
+
+//! A brainfuck interpreter written in Rust.
+//!
+//! This program aims to be a straightforward interpreter
+//! for the brainfuck programming language. It is still
+//! under development and breaking changes are to be expected.
 
 mod cmdline;
 mod error;
@@ -119,6 +119,13 @@ impl<'a> Interpreter<'a> {
         Ok(())
     }
 
+    /// Executes the given char as a brainfuck operator `num` times.
+    ///
+    /// Takes a char and a multiplier and executes it this many times
+    /// in the context of `self`. Over- and underflow is accounted for.
+    /// # Panics
+    /// `c` is `]` but is missing a jump point.
+    /// `c` is not a valid brainfuck operator.
     fn exec(&mut self, c: char, num: u32) {
         match c {
             '+' => {
@@ -155,20 +162,21 @@ impl<'a> Interpreter<'a> {
         };
     }
 
-    /// Reads out the active cell.
+    /// Returns the value of the active cell.
     ///
-    /// Returns the value of the specified cell and
-    /// initializes it with 0 if necessary.
+    /// The cell is initialized if necessary.
     fn read(&mut self) -> u8 {
-        *self.strip.entry(self.addr_ptr).or_insert(0)
+        *self.strip.entry(self.addr_ptr).or_default()
     }
 
     /// Writes a byte into the active cell.
+    ///
+    /// The previous value, if any, gets overwritten.
     fn write(&mut self, val: u8) {
         self.strip.insert(self.addr_ptr, val);
     }
 
-    /// Reads one byte from `io::stdin` and saves it.
+    /// Reads one byte from `self.bfin` and stores it in the active cell.
     ///
     /// # Panics
     /// If an `io::Error` occurs during `read_exact()`.
@@ -188,7 +196,7 @@ impl<'a> Interpreter<'a> {
         self.write(buf[0]);
     }
 
-    /// Writes the active cell as byte to `io::stdout`.
+    /// Writes the value of the active cell as byte to `self.bfout`.
     ///
     /// # Panics
     /// If an `io::Error` occurs during `write_all()`.
@@ -206,6 +214,10 @@ impl<'a> Interpreter<'a> {
         .expect("error while writing to bfout");
     }
 
+    /// Flushes the internal `CharBuf`, `exec()`ing the contained char.
+    ///
+    /// This operation returns the buffer to it's default state.
+    /// This is needed to supply the `CharBuf` with a new byte.
     fn flush_buf(&mut self) {
         if let Some(c) = self.char_buf.ch_opt {
             self.exec(c, self.char_buf.ctr)
@@ -219,6 +231,10 @@ impl<'a> Interpreter<'a> {
 mod test_runbf {
     use super::*;
 
+    /// The "Hello, World!" program in brainfuck.
+    ///
+    /// A comment loop is added in the beginning, to test
+    /// the capability to ignore this construct.
     const HELLO_WORLD_PROG: &str = "[,.[.],..,,,+,-,<>,[]..]++++++++[>++++[>++>+++>+++>+<<<<-]>+>+>->>+[<]<-]>>.>---.+++++++..+++.>>.<-.<.+++.------.--------.>>+.>++.";
 
     #[test]

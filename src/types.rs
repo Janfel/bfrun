@@ -21,7 +21,10 @@ use std::collections::HashMap;
 
 /// A struct for buffering chars.
 ///
-/// Useful for counting chars before batch-executing them.
+/// Can only hold one char at a time and has to be
+/// emptied using `clear()` before supplying a new one.
+/// This was decided to prevent an accidental
+/// silent loss of information.
 #[derive(Default)]
 pub struct CharBuf {
     /// The char that is currently being buffered, if any.

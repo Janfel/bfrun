@@ -1,8 +1,3 @@
-//! Errors that occurr during compile-time or runtime.
-//!
-//! This module contains the `Error` and `Result` types
-//! used by the bfrun interpreter.
-
 /*
  * Copyright (C) 2019 Jan Felix Langenbach
  *
@@ -21,6 +16,11 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http: //www.gnu.org/licenses/>.
  */
+
+//! Errors that occurr during compile-time or runtime.
+//!
+//! This module contains the `Error` and `Result` types
+//! used by the bfrun interpreter.
 
 use std::{error::Error as StdError, fmt, result::Result as StdResult};
 
@@ -45,4 +45,5 @@ impl fmt::Display for Error {
 
 impl StdError for Error {}
 
+/// A value indicating if an error occurred during execution.
 pub type Result = StdResult<(), Error>;

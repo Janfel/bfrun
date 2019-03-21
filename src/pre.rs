@@ -17,11 +17,24 @@
  * along with this program.  If not, see <http: //www.gnu.org/licenses/>.
  */
 
+//! Functions for preprocessing the program string.
+//!
+//! The main function of this module is `process()`,
+//! which converts a string into a statically analyzed
+//! vector of brainfuck operators.
+
 use crate::error::{Error, Result as BfResult};
 
 /// All valid brainfuck operators.
 const VALID_CHARS: [char; 8] = ['+', '-', '<', '>', '.', ',', '[', ']'];
 
+/// Turns the given program into a vector of valid chars.
+///
+/// Converts a string into a statically analyzed
+/// vector of brainfuck operators. Every insignificant
+/// char is filtered out.
+/// # Result
+/// The static analysis found a logic error in the program
 pub fn process(prog: &str) -> Result<Vec<char>, Error> {
     let res: Vec<char> = prog.chars().filter(|x| VALID_CHARS.contains(x)).collect();
 
@@ -30,6 +43,7 @@ pub fn process(prog: &str) -> Result<Vec<char>, Error> {
     Ok(res)
 }
 
+/// Checks the program for mismatched brackets.
 fn brackets(prog: &[char]) -> BfResult {
     let mut acc = 0;
     for c in prog.iter() {
