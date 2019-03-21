@@ -26,58 +26,19 @@
 mod cmdline;
 mod error;
 mod pre;
+mod types;
 
 pub use cmdline::{open_istream, open_ostream, read_prog};
 pub use error::{Error, Result};
 
 use std::{
-    collections::HashMap,
-    fs,
     io::{self, Read, Write},
-    path::Path,
     u8,
 };
+use types::{CharBuf, Strip};
 
 /// All valid brainfuck operators.
 const VALID_CHARS: [char; 8] = ['+', '-', '<', '>', '.', ',', '[', ']'];
-
-/// A struct for buffering chars.
-///
-/// Useful for counting chars before batch-executing them.
-#[derive(Default)]
-struct CharBuf {
-    /// The char that is currently being buffered, if any.
-    pub ch_opt: Option<char>,
-    /// Counts the number of instances in the buffer.
-    pub ctr: u32,
-}
-
-impl CharBuf {
-    pub fn new() -> Self {
-        Self::default()
-    }
-
-    /// Inserts a char into the buffer and increments `ctr`.
-    ///
-    /// # Panics
-    /// If the buffer currently contains a char other than `c`.
-    pub fn insert(&mut self, c: char) {
-        match self.ch_opt {
-            Some(val) if val == c => self.ctr += 1,
-            Some(_) => panic!("inserted new char into non-empty CharBuf"),
-            None => {
-                self.ch_opt = Some(c);
-                self.ctr = 1
-            }
-        }
-    }
-
-    /// Resets the buffer to an empty state.
-    pub fn clear(&mut self) {
-        self.ch_opt = None;
-        self.ctr = 0;
-    }
-}
 
 #[derive(Default)]
 pub struct Interpreter<'a> {
@@ -265,13 +226,6 @@ impl<'a> Interpreter<'a> {
         self.char_buf.clear();
     }
 }
-
-pub fn read_file(fname: impl AsRef<Path>) -> io::Result<Vec<char>> {
-    Ok(fs::read_to_string(fname)?.chars().collect())
-}
-
-/// The strip of memory brainfuck uses.
-type Strip = HashMap<i64, u8>;
 
 #[cfg(test)]
 mod test_runbf {
