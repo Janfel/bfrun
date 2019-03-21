@@ -50,11 +50,11 @@ fn main() -> Result<(), Box<Error>> {
     match matches.values_of("input") {
         Some(it) => {
             for prog in it.map(read_prog) {
-                inter.run(prog.chars().collect())?;
+                inter.run(&prog)?;
             }
         }
         None => {
-            inter.run(read_prog("-").chars().collect())?;
+            inter.run(&read_prog("-"))?;
         }
     }
 

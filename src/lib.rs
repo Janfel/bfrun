@@ -78,13 +78,13 @@ impl<'a> Interpreter<'a> {
 
     /// Runs a brainfuck program.
     ///
-    /// This function takes a slice of brainfuck instructions,
-    /// preprocesses them and executes them in-memory.
+    /// This function takes a brainfuck program in form of
+    /// a string, preprocesses it and executes it in-memory.
     /// # Errors
     /// Returns any of the runtime errors in `bfrun::error::Error`.
     /// # Panics
     /// If an IO error occurs during the execution of the brainfuck program.
-    pub fn run(&mut self, prog: Vec<char>) -> Result {
+    pub fn run(&mut self, prog: &str) -> Result {
         let prog = pre::process(prog)?;
         let endval = prog.len();
 

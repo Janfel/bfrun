@@ -20,11 +20,8 @@
 use super::VALID_CHARS;
 use crate::error::{Error, Result as BfResult};
 
-pub fn process(prog: Vec<char>) -> Result<Vec<char>, Error> {
-    let res: Vec<char> = prog
-        .into_iter()
-        .filter(|x| VALID_CHARS.contains(x))
-        .collect();
+pub fn process(prog: &str) -> Result<Vec<char>, Error> {
+    let res: Vec<char> = prog.chars().filter(|x| VALID_CHARS.contains(x)).collect();
 
     brackets(&res)?;
 
