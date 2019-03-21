@@ -28,7 +28,7 @@ use std::{error::Error as StdError, fmt, result::Result as StdResult};
 #[derive(Copy, Debug, Clone, PartialEq, Eq)]
 pub enum Error {
     /// There are more left brackets than right brackets in the program.
-    MissingRightBracket, // TODO Add counters.
+    MissingRightBracket,
     /// There are more right brackets than left brackets in the program.
     MissingLeftBracket,
     /// There is no input file.

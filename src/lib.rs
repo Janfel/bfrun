@@ -37,9 +37,6 @@ use std::{
 };
 use types::{CharBuf, Strip};
 
-/// All valid brainfuck operators.
-const VALID_CHARS: [char; 8] = ['+', '-', '<', '>', '.', ',', '[', ']'];
-
 #[derive(Default)]
 pub struct Interpreter<'a> {
     bfin: Option<&'a mut Read>,
@@ -54,16 +51,7 @@ pub struct Interpreter<'a> {
 
 impl<'a> Interpreter<'a> {
     pub fn new() -> Self {
-        Self {
-            bfin: None,
-            bfout: None,
-            addr_ptr: 0,
-            prog_ctr: 0,
-            skip_ctr: 0,
-            strip: Strip::new(),
-            jumps: Vec::new(),
-            char_buf: CharBuf::new(),
-        }
+        Self::default()
     }
 
     pub fn bfin(mut self, ins: &'a mut impl Read) -> Self {
@@ -175,7 +163,7 @@ impl<'a> Interpreter<'a> {
         *self.strip.entry(self.addr_ptr).or_insert(0)
     }
 
-    /// Writes `val` into the active cell.
+    /// Writes a byte into the active cell.
     fn write(&mut self, val: u8) {
         self.strip.insert(self.addr_ptr, val);
     }

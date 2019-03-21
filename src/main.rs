@@ -29,9 +29,9 @@ fn main() -> Result<(), Box<Error>> {
         (version: crate_version!())
         (author: crate_authors!("\n"))
         (about: crate_description!())
-        (@arg istream: -i --bfin [BFIN] "Sets the file the program reads from")
-        (@arg ostream: -o --bfout [BFOUT] "Sets the file the program writes to")
-        (@arg input: value_name[INPUT] ... "The input file or '-' for stdin")
+        (@arg istream: -i --bfin [BFIN] "Sets the file the program reads from.")
+        (@arg ostream: -o --bfout [BFOUT] "Sets the file the program writes to.")
+        (@arg input: value_name[INPUT] ... "The input files or '-' for stdin.")
     )
     .get_matches();
 

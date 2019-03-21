@@ -31,10 +31,6 @@ pub struct CharBuf {
 }
 
 impl CharBuf {
-    pub fn new() -> Self {
-        Self::default()
-    }
-
     /// Inserts a char into the buffer and increments `ctr`.
     ///
     /// # Panics

@@ -17,8 +17,10 @@
  * along with this program.  If not, see <http: //www.gnu.org/licenses/>.
  */
 
-use super::VALID_CHARS;
 use crate::error::{Error, Result as BfResult};
+
+/// All valid brainfuck operators.
+const VALID_CHARS: [char; 8] = ['+', '-', '<', '>', '.', ',', '[', ']'];
 
 pub fn process(prog: &str) -> Result<Vec<char>, Error> {
     let res: Vec<char> = prog.chars().filter(|x| VALID_CHARS.contains(x)).collect();
