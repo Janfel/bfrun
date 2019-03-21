@@ -31,8 +31,6 @@ pub enum Error {
     MissingRightBracket,
     /// There are more right brackets than left brackets in the program.
     MissingLeftBracket,
-    /// There is no input file.
-    NoInputFile,
 }
 
 impl fmt::Display for Error {
@@ -41,7 +39,6 @@ impl fmt::Display for Error {
         match self {
             MissingRightBracket => write!(f, "Error: MissingRightBracket"),
             MissingLeftBracket => write!(f, "Error: MissingLeftBracket"),
-            NoInputFile => write!(f, "Error: NoInputFile"),
         }
     }
 }
