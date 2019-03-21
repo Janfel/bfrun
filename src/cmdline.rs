@@ -22,6 +22,8 @@ use std::{
     io::{self, BufReader, BufWriter, Read, Write},
 };
 
+// TODO Proper error handling.
+
 pub fn read_prog(from: &str) -> String {
     match from {
         "-" => {

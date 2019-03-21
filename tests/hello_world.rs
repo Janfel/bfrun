@@ -18,13 +18,13 @@
  */
 extern crate bfrun;
 
-use bfrun::{read_file, Interpreter};
+use bfrun::{read_prog, Interpreter};
 
 #[test]
 fn hello_world() {
-    let prog = read_file("tests/hello_world.b").unwrap();
+    let prog = read_prog("tests/hello_world.b");
     let mut bfout = Vec::new();
     let expected = "Hello World!\n";
-    Interpreter::new().bfout(&mut bfout).run(prog).unwrap();
+    Interpreter::new().bfout(&mut bfout).run(&prog).unwrap();
     assert_eq!(&String::from_utf8(bfout).unwrap(), expected)
 }

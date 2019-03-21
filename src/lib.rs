@@ -223,16 +223,18 @@ mod test_runbf {
 
     #[test]
     fn runtime_error() {
-        let prog = read_file("examples/hello_world.b").unwrap();
-        Interpreter::new().run(prog).unwrap();
+        let prog = read_prog("examples/hello_world.b");
+        Interpreter::new().run(&prog).unwrap();
     }
 
     #[test]
     fn hello_world() {
-        let prog: Vec<char> = HELLO_WORLD_PROG.chars().collect();
         let mut bfout = Vec::new();
         let expected = "Hello World!\n";
-        Interpreter::new().bfout(&mut bfout).run(prog).unwrap();
+        Interpreter::new()
+            .bfout(&mut bfout)
+            .run(HELLO_WORLD_PROG)
+            .unwrap();
         assert_eq!(&String::from_utf8(bfout).unwrap(), expected)
     }
 }
