@@ -26,7 +26,7 @@ use std::{
     env,
     error::Error as StdError,
     fs::{self, File, OpenOptions},
-    io::{self, BufReader, BufWriter, Read},
+    io::{self, BufReader, BufWriter, Read, BufRead, Write},
 };
 
 fn main() -> Result<(), Box<StdError>> {
@@ -99,3 +99,34 @@ fn main() -> Result<(), Box<StdError>> {
 
     Ok(())
 }
+
+fn read_prog(from: &str) -> String {
+    match from {
+        "-" => {
+            let mut buf = String::new();
+            io::stdin()
+                .read_to_string(&mut buf)
+                .expect("unable to read from stdin");
+            buf
+        },
+        _ => fs::read_to_string(from).expect("unable to read from input file")
+    }
+}
+
+fn open_istream(from: &str) -> BufReader<Box<Read>> {
+    let stream: Box<Read> = match from {
+        "-" => Box::new(io::stdin()),
+        _ => Box::new(File::open(from).expect("unable to open bfin file")),
+    };
+    BufReader::new(stream)
+}
+
+fn open_ostream(from: &str) -> BufWriter<Box<Write>> {
+    let stream: Box<Write> = match from {
+        "-" => Box::new(io::stdout()),
+        _ => Box::new(OpenOptions::new().append(true).create(true).open(from).expect("unable to open bfout file")),
+    };
+    BufWriter::new(stream)
+}
+
+
