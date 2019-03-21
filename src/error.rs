@@ -45,4 +45,5 @@ impl fmt::Display for Error {
 
 impl StdError for Error {}
 
+/// A value indicating if an error occurred during execution.
 pub type Result = StdResult<(), Error>;

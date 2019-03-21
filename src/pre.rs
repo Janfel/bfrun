@@ -22,6 +22,12 @@ use crate::error::{Error, Result as BfResult};
 /// All valid brainfuck operators.
 const VALID_CHARS: [char; 8] = ['+', '-', '<', '>', '.', ',', '[', ']'];
 
+/// Turns the given program into a vector of valid chars.
+///
+/// Takes the chars of the given string, filters out any
+/// invalid ones and does some basic static analysis.
+/// # Result
+/// The static analysis found a logic error in the program
 pub fn process(prog: &str) -> Result<Vec<char>, Error> {
     let res: Vec<char> = prog.chars().filter(|x| VALID_CHARS.contains(x)).collect();
 
@@ -30,6 +36,7 @@ pub fn process(prog: &str) -> Result<Vec<char>, Error> {
     Ok(res)
 }
 
+/// Checks the program for mismatched brackets.
 fn brackets(prog: &[char]) -> BfResult {
     let mut acc = 0;
     for c in prog.iter() {

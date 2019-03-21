@@ -24,6 +24,13 @@ use std::{
 
 // TODO Proper error handling.
 
+/// Reads the specified source into a string.
+///
+/// Opens the source, or `stdin` if `from` is `"-"`,
+/// and reads it into a string until the first EOF.
+/// # Panics
+/// An error occurred while reading. This was decided
+/// to be able to easily map this function over an iterator.
 pub fn read_prog(from: &str) -> String {
     match from {
         "-" => {
@@ -37,6 +44,14 @@ pub fn read_prog(from: &str) -> String {
     }
 }
 
+/// Opens the specified source as input stream.
+///
+/// Opens the source, or `stdin` if `from` is `"-"`,
+/// and returns it as `BufReader`.
+/// # Panics
+/// An error occurred while opening an input file.
+/// This was decided to be able to easily map
+/// this function over an iterator.
 pub fn open_istream(from: &str) -> BufReader<Box<Read>> {
     let stream: Box<Read> = match from {
         "-" => Box::new(io::stdin()),
@@ -45,6 +60,14 @@ pub fn open_istream(from: &str) -> BufReader<Box<Read>> {
     BufReader::new(stream)
 }
 
+/// Opens the specified source as output stream.
+///
+/// Opens the source, or `stdout` if `from` is `"-"`,
+/// and returns it as `BufWriter`.
+/// # Panics
+/// An error occurred while opening an output file.
+/// This was decided to be able to easily map
+/// this function over an iterator.
 pub fn open_ostream(from: &str) -> BufWriter<Box<Write>> {
     let stream: Box<Write> = match from {
         "-" => Box::new(io::stdout()),
