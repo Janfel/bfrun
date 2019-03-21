@@ -29,6 +29,13 @@ cargo test
 
 ## Release History
 
+* 0.2.0
+  * ADD: New commandline interface
+  * ADD: Support for multiple inputs
+  * ADD: Support for stdin
+  * ADD: API helper functions
+  * CHANGE: API of the internal lib
+  * FIX: Number wrapping errors
 * 0.1.0
   * Work in progress
 
@@ -47,8 +54,3 @@ Distributed under the GPLv3. See ``LICENSE`` for more information.
 3. Commit your changes (`git commit -am 'Add some fooBar'`)
 4. Push to the branch (`git push origin feature/fooBar`)
 5. Create a new Pull Request
-
-<!-- Markdown link & img dfn's
-[travis-image]: https://img.shields.io/travis/dbader/node-datadog-metrics/master.svg?style=flat-square
-[travis-url]: https://travis-ci.org/dbader/node-datadog-metrics
--->
