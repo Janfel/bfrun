@@ -21,12 +21,11 @@
 extern crate clap;
 extern crate bfrun;
 
-use bfrun::{error::Error, read_file, Interpreter};
+use bfrun::Interpreter;
 use std::{
-    env,
     error::Error as StdError,
     fs::{self, File, OpenOptions},
-    io::{self, BufReader, BufWriter, Read, BufRead, Write},
+    io::{self, BufReader, BufWriter, Read, Write},
 };
 
 fn main() -> Result<(), Box<StdError>> {
@@ -40,60 +39,26 @@ fn main() -> Result<(), Box<StdError>> {
     )
     .get_matches();
 
-    let mut int = Interpreter::new();
+    let mut inter = Interpreter::new();
 
-    let mut bfin = matches
-        .value_of("istream")
-        .map(|x| BufReader::new(File::open(x).expect("unable to open bfin")));
-
-    let mut bfout = matches.value_of("ostream").map(|x| {
-        BufWriter::new(
-            OpenOptions::new()
-                .write(true)
-                .create(true)
-                .open(x)
-                .expect("unable to open bfout"),
-        )
-    });
-
-    let mut inputs = matches.values_of("input").map(|x| {
-        x.map(|y| {
-            if y == "-" {
-                let mut buf = String::new();
-                io::stdin()
-                    .read_to_string(&mut buf)
-                    .expect("unable to read from stdin");
-                buf
-            } else {
-                fs::read_to_string(y).expect("unable to read from input file")
-            }
-            .chars()
-            .collect::<Vec<char>>()
-        })
-    });
-
-    if let Some(ref mut v) = bfin {
-        int = int.bfin(v);
+    let mut intemp = matches.value_of("istream").map(open_istream);
+    if let Some(ref mut rd) = intemp {
+        inter = inter.bfin(rd);
     }
 
-    if let Some(ref mut v) = bfout {
-        int = int.bfout(v);
+    let mut outtemp = matches.value_of("ostream").map(open_ostream);
+    if let Some(ref mut wt) = outtemp {
+        inter = inter.bfout(wt);
     }
 
-    match inputs {
-        Some(iter) => {
-            for prog in iter {
-                int.run(prog)?;
+    match matches.values_of("input") {
+        Some(it) => {
+            for prog in it.map(read_prog) {
+                inter.run(prog.chars().collect())?;
             }
         }
         None => {
-            int.run({
-                let mut buf = String::new();
-                io::stdin()
-                    .read_to_string(&mut buf)
-                    .expect("unable to read from stdin");
-                buf.chars().collect::<Vec<char>>()
-            })?;
+            inter.run(read_prog("-").chars().collect())?;
         }
     }
 
@@ -108,8 +73,8 @@ fn read_prog(from: &str) -> String {
                 .read_to_string(&mut buf)
                 .expect("unable to read from stdin");
             buf
-        },
-        _ => fs::read_to_string(from).expect("unable to read from input file")
+        }
+        _ => fs::read_to_string(from).expect("unable to read from input file"),
     }
 }
 
@@ -124,9 +89,13 @@ fn open_istream(from: &str) -> BufReader<Box<Read>> {
 fn open_ostream(from: &str) -> BufWriter<Box<Write>> {
     let stream: Box<Write> = match from {
         "-" => Box::new(io::stdout()),
-        _ => Box::new(OpenOptions::new().append(true).create(true).open(from).expect("unable to open bfout file")),
+        _ => Box::new(
+            OpenOptions::new()
+                .append(true)
+                .create(true)
+                .open(from)
+                .expect("unable to open bfout file"),
+        ),
     };
     BufWriter::new(stream)
 }
-
-
