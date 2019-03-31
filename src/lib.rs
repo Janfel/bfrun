@@ -43,7 +43,7 @@ pub struct Interpreter<'a> {
     addr_ptr: i64,
     prog_ctr: usize,
     skip_ctr: u32,
-    strip: Strip,
+    strip: HashMap<i64, u8>,
     jumps: Vec<usize>,
     char_buf: CharBuf,
 }
@@ -233,11 +233,11 @@ impl<'a> Interpreter<'a> {
 /// This was decided to prevent an accidental
 /// silent loss of information.
 #[derive(Default)]
-pub struct CharBuf {
+struct CharBuf {
     /// The char that is currently being buffered, if any.
-    pub ch_opt: Option<char>,
+    ch_opt: Option<char>,
     /// Counts the number of instances in the buffer.
-    pub ctr: u32,
+    ctr: u32,
 }
 
 impl CharBuf {
@@ -245,7 +245,7 @@ impl CharBuf {
     ///
     /// # Panics
     /// If the buffer currently contains a char other than `c`.
-    pub fn insert(&mut self, c: char) {
+    fn insert(&mut self, c: char) {
         match self.ch_opt {
             Some(val) if val == c => self.ctr += 1,
             Some(_) => panic!("inserted new char into non-empty CharBuf"),
@@ -257,14 +257,11 @@ impl CharBuf {
     }
 
     /// Resets the buffer to an empty state.
-    pub fn clear(&mut self) {
+    fn clear(&mut self) {
         self.ch_opt = None;
         self.ctr = 0;
     }
 }
-
-/// The strip of memory brainfuck uses.
-pub type Strip = HashMap<i64, u8>;
 
 #[cfg(test)]
 mod test_runbf {
