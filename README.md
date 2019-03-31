@@ -52,6 +52,9 @@ cargo test
 
 ## Release History
 
+- 0.2.1
+  - ADD: More documentation for the public API
+  - REMOVE: Unnecessary module `types.rs`
 - 0.2.0
   - ADD: New commandline interface
   - ADD: Support for multiple inputs
