@@ -49,15 +49,21 @@ pub struct Interpreter<'a> {
 }
 
 impl<'a> Interpreter<'a> {
+    /// Constructs a new `Interpreter`.
+    ///
+    /// The `Interpreter`'s `bfin` and `bfout` attributes are set
+    /// to `stdin` and `stdout` respectively.
     pub fn new() -> Self {
         Self::default()
     }
 
+    /// Sets an `Interpreter`'s `bfin` attribute to the given `Reader`.
     pub fn bfin(mut self, ins: &'a mut impl Read) -> Self {
         self.bfin = Some(ins);
         self
     }
 
+    /// Sets an `Interpreter`'s `bfout` attribute to the given `Writer`.
     pub fn bfout(mut self, outs: &'a mut impl Write) -> Self {
         self.bfout = Some(outs);
         self
