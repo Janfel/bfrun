@@ -52,15 +52,15 @@ cargo test
 
 ## Release History
 
-* 0.2.0
-  * ADD: New commandline interface
-  * ADD: Support for multiple inputs
-  * ADD: Support for stdin
-  * ADD: API helper functions
-  * CHANGE: API of the internal lib
-  * FIX: Number wrapping errors
-* 0.1.0
-  * Work in progress
+- 0.2.0
+  - ADD: New commandline interface
+  - ADD: Support for multiple inputs
+  - ADD: Support for stdin
+  - ADD: API helper functions
+  - CHANGE: API of the internal lib
+  - FIX: Number wrapping errors
+- 0.1.0
+  - Work in progress
 
 ## Meta
 
