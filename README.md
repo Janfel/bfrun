@@ -4,7 +4,30 @@
 
 [![Build Status](https://travis-ci.com/Janfel/bfrun.svg?branch=master)](https://travis-ci.com/Janfel/bfrun)
 
-This program aims to be a straightforward interpreter for the brainfuck programming language. It is still under development and breaking changes are to be expected.
+This program aims to be a straightforward and easily embeddable interpreter for the brainfuck programming language. It is still under development and breaking changes are to be expected.
+
+## About
+
+This program is the result of a school project I did. Therefore I tried to use best coding practices wherever I could, including, but not limited to, the following:
+
+- Consistent use of documentation, especially concerning the public API of my library.
+- This README.
+- Adherence to the guidelines laid out in the official book [The Rust Programming Language](https://doc.rust-lang.org/book/index.html).
+- An easy-to-use command line interface.
+- A clear and easily readable git history.
+
+Furthermore, I set the following challenges for myself:
+
+- The use of a low-level language such as Rust.
+- Adherence to POSIX conventions.
+- Support for shell pipes.
+- Support for custom input and output streams for the brainfuck program.
+- Embeddability.
+- Continuous Integration using [Travis CI](https://travis-ci.com).
+- Use of the [Git-flow-Workflow](https://nvie.com/posts/a-successful-git-branching-model/).
+- Use of a text editor instead of an IDE.
+
+This repository exists to show that I am capable of writing good code and adhering to common best practices at the same time.
 
 ## Installation
 
