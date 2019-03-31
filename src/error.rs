@@ -17,14 +17,14 @@
  * along with this program.  If not, see <http: //www.gnu.org/licenses/>.
  */
 
-//! Errors that occurr during compile-time or runtime.
+//! Errors that occur during compile-time or runtime.
 //!
 //! This module contains the `Error` and `Result` types
 //! used by the bfrun interpreter.
 
 use std::{error::Error as StdError, fmt, result::Result as StdResult};
 
-/// Errors that occurr while parsing and checking the program.
+/// Errors that occur while parsing and checking the program.
 #[derive(Copy, Debug, Clone, PartialEq, Eq)]
 pub enum Error {
     /// There are more left brackets than right brackets in the program.
