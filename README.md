@@ -3,6 +3,7 @@
 > A brainfuck interpreter written in Rust.
 
 [![Build Status](https://travis-ci.com/Janfel/bfrun.svg?branch=master)](https://travis-ci.com/Janfel/bfrun)
+[![GitHub](https://img.shields.io/github/license/janfel/bfrun.svg)](https://github.com/Janfel/bfrun/blob/master/LICENSE)
 
 This program aims to be a straightforward and easily embeddable interpreter for the brainfuck programming language. It is still under development and breaking changes are to be expected.
 
@@ -48,6 +49,14 @@ git clone "https://github.com/janfel/bfrun/"
 cd bfrun
 cargo build
 cargo test
+```
+
+## Documentation
+
+```sh
+git clone "https://github.com/janfel/bfrun/"
+cd bfrun
+cargo doc --open
 ```
 
 ## Release History
