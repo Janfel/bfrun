@@ -24,7 +24,7 @@ extern crate bfrun;
 use bfrun::{open_istream, open_ostream, read_prog, Interpreter};
 use std::error::Error;
 
-fn main() -> Result<(), Box<Error>> {
+fn main() -> Result<(), Box<dyn Error>> {
     let matches = clap_app!(bfrun =>
         (version: crate_version!())
         (author: crate_authors!("\n"))
